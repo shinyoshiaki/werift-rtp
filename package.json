@@ -24,7 +24,8 @@
     "unused": "organize-imports-cli src/**/*.ts"
   },
   "dependencies": {
-    "binary-data": "^0.6.0"
+    "binary-data": "^0.6.0",
+    "jspack": "^0.0.4"
   },
   "devDependencies": {
     "@types/jest": "^25.2.2",

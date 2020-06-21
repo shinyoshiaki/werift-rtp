@@ -45,7 +45,7 @@
         "--files",
         "--project",
         "${workspaceRoot}/tsconfig.json",
-        "${workspaceRoot}/examples/packet.ts"
+        "${workspaceRoot}/examples/ffmpeg.ts"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"

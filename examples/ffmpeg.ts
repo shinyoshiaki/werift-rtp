@@ -1,5 +1,6 @@
 import { createSocket } from "dgram";
 import { spawn } from "child_process";
+import { Packet } from "../src";
 
 const socket = createSocket("udp4");
 socket.bind(5004);
@@ -29,6 +30,7 @@ socket.on("listening", () => {
 });
 
 socket.on("message", (data) => {
+  const p = Packet.deSerialize(data);
   console.log(data);
 });
 

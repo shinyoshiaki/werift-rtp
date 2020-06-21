@@ -1,7 +1,3 @@
-import { types, decode } from "binary-data";
-import { jspack } from "jspack";
-import { assignClassProperties } from "./utils";
-
 type Extension = { id: number; payload: Buffer };
 
 const versionShift = 6;

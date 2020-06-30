@@ -6,6 +6,8 @@ const paddingShift = 5;
 const paddingMask = 0x1;
 const extensionShift = 4;
 const extensionMask = 0x1;
+const extensionProfileOneByte = 0xbede;
+const extensionProfileTwoByte = 0x1000;
 const ccMask = 0xf;
 const markerShift = 7;
 const markerMask = 0x1;
@@ -147,6 +149,36 @@ class Header {
     h.payloadOffset = currOffset;
     return h;
   }
+
+  get serializeSize() {
+    let size = 12 + this.csrc.length * csrcLength;
+
+    if (this.extension) {
+      let extSize = 4;
+      switch (this.extensionProfile) {
+        case extensionProfileOneByte:
+          this.extensions.forEach((extension) => {
+            extSize += 1 + extension.payload.length;
+          });
+          break;
+        case extensionProfileTwoByte:
+          this.extensions.forEach((extension) => {
+            extSize += 2 + extension.payload.length;
+          });
+          break;
+        default:
+          extSize += this.extensions[0].payload.length;
+      }
+      size += Math.floor((extSize + 3) / 4) * 4;
+    }
+
+    return size;
+  }
+
+  serialize() {
+    const buf = [];
+    buf.push();
+  }
 }
 
 export class Packet {
@@ -156,8 +188,13 @@ export class Packet {
     public payload: Buffer
   ) {}
 
+  get serializeSize() {
+    return this.header.serializeSize + this.payload.length;
+  }
+
   static deSerialize(buf: Buffer) {
     const header = Header.deSerialize(buf.slice(0, 20));
-    return new Packet(header, buf, buf.slice(20));
+    const p = new Packet(header, buf, buf.slice(header.payloadOffset));
+    return p;
   }
 }

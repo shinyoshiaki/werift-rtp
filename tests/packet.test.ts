@@ -1,4 +1,5 @@
 import { Packet } from "../src/packet";
+import { load } from "./utils";
 
 describe("packet", () => {
   test("basic", () => {
@@ -43,6 +44,9 @@ describe("packet", () => {
     ]);
     expect(parsed.header.payloadOffset).toBe(20);
     expect(parsed.header.payloadType).toBe(96);
+
+    expect(parsed.header.serializeSize).toBe(20);
+    expect(parsed.serializeSize).toBe(raw.length);
   });
 
   test("TestRFC8285OneByteExtension", () => {
@@ -116,5 +120,19 @@ describe("packet", () => {
       { id: 1, payload: Buffer.from([0xaa]) },
       { id: 2, payload: Buffer.from([0xbb]) },
     ]);
+  });
+
+  test("dtmf", () => {
+    const data = load("rtp_dtmf.bin");
+    const p = Packet.deSerialize(data);
+    const h = p.header;
+    expect(h.version).toBe(2);
+    expect(h.marker).toBe(true);
+    expect(h.payloadType).toBe(101);
+    expect(h.sequenceNumber).toBe(24152);
+    expect(h.timestamp).toBe(4021352124);
+    expect(h.csrc).toEqual([]);
+    // expect(h.extensions).to
+    expect(p.payload.length).toBe(4);
   });
 });

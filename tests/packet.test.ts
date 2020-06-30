@@ -134,7 +134,40 @@ describe("packet", () => {
     expect(h.sequenceNumber).toBe(24152);
     expect(h.timestamp).toBe(4021352124);
     expect(h.csrc).toEqual([]);
-    // expect(h.extensions).to
+    expect(h.extensions).toEqual([]);
     expect(p.payload.length).toBe(4);
+    expect(p.serialize()).toEqual(data);
+  });
+
+  test("test_no_ssrc", () => {
+    const data = load("rtp.bin");
+    const p = Packet.deSerialize(data);
+    const h = p.header;
+    expect(h.version).toBe(2);
+    expect(h.marker).toBe(false);
+    expect(h.payloadType).toBe(0);
+    expect(h.sequenceNumber).toBe(15743);
+    expect(h.timestamp).toBe(3937035252);
+    expect(h.csrc).toEqual([]);
+    expect(h.extensions).toEqual([]);
+    expect(p.payload.length).toBe(160);
+    expect(p.serialize()).toEqual(data);
+  });
+
+  test("test_padding_only_with_header_extensions", () => {
+    const data = load("rtp_only_padding_with_header_extensions.bin");
+    const p = Packet.deSerialize(data);
+    const h = p.header;
+    expect(h.version).toBe(2);
+    expect(h.marker).toBe(false);
+    expect(h.payloadType).toBe(98);
+    expect(h.sequenceNumber).toBe(22138);
+    expect(h.timestamp).toBe(3171065731);
+    expect(h.csrc).toEqual([]);
+
+    expect(h.padding).toBe(true);
+    expect(h.paddingSize).toBe(224);
+    expect(p.payload.length).toBe(0);
+    expect(p.serialize()).toEqual(data);
   });
 });

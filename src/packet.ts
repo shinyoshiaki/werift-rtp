@@ -1,7 +1,6 @@
 type Extension = { id: number; payload: Buffer };
 
 const versionShift = 6;
-const versionMask = 0x3;
 const paddingShift = 5;
 const paddingMask = 0x1;
 const extensionShift = 4;
@@ -10,7 +9,6 @@ const extensionProfileOneByte = 0xbede;
 const extensionProfileTwoByte = 0x1000;
 const ccMask = 0xf;
 const markerShift = 7;
-const markerMask = 0x1;
 const ptMask = 0x7f;
 const seqNumOffset = 2;
 const seqNumLength = 2;
@@ -37,30 +35,31 @@ const csrcLength = 4;
  */
 
 class Header {
-  public version: number;
-  public padding: boolean;
-  public extension: boolean;
-  public marker: boolean;
-  public payloadOffset: number;
-  public payloadType: number;
-  public sequenceNumber: number;
-  public timestamp: number;
-  public ssrc: number;
-  public csrc: number[] = [];
-  public extensionProfile: number;
-  public extensions: Extension[] = [];
+  version: number;
+  padding: boolean;
+  paddingSize: number = 0;
+  extension: boolean;
+  marker: boolean;
+  payloadOffset: number;
+  payloadType: number;
+  sequenceNumber: number;
+  timestamp: number;
+  ssrc: number;
+  csrc: number[] = [];
+  extensionProfile: number;
+  extensions: Extension[] = [];
   constructor() {}
 
   static deSerialize(rawPacket: Buffer) {
     const h = new Header();
-    h.version = (rawPacket[0] >> versionShift) & versionMask;
+    h.version = rawPacket[0] >> versionShift;
     h.padding = ((rawPacket[0] >> paddingShift) & paddingMask) > 0;
     h.extension = ((rawPacket[0] >> extensionShift) & extensionMask) > 0;
     h.csrc = new Array(rawPacket[0] & ccMask);
 
     let currOffset = csrcOffset + h.csrc.length * csrcLength;
 
-    h.marker = ((rawPacket[1] >> markerShift) & markerMask) > 0;
+    h.marker = rawPacket[1] >> markerShift > 0;
     h.payloadType = rawPacket[1] & ptMask;
     h.sequenceNumber = rawPacket
       .slice(seqNumOffset, seqNumOffset + seqNumLength)
@@ -147,6 +146,10 @@ class Header {
       }
     }
     h.payloadOffset = currOffset;
+    if (h.padding) {
+      h.paddingSize = rawPacket[rawPacket.length - 1];
+    }
+
     return h;
   }
 
@@ -179,24 +182,24 @@ class Header {
     const buf = Buffer.alloc(size);
     let offset = 0;
 
-    let vpxcc = (this.version << versionShift) | this.csrc.length;
+    let v_p_x_cc = (this.version << versionShift) | this.csrc.length;
     if (this.padding) {
-      vpxcc = vpxcc | (1 << paddingShift);
+      v_p_x_cc = v_p_x_cc | (1 << paddingShift);
     }
     if (this.extension) {
-      vpxcc = vpxcc | (1 << extensionShift);
+      v_p_x_cc = v_p_x_cc | (1 << extensionShift);
     }
-    buf.writeUInt8(vpxcc, offset++);
-    let pt = this.payloadType;
+    buf.writeUInt8(v_p_x_cc, offset++);
+    let m_pt = this.payloadType;
     if (this.marker) {
-      pt = pt | (1 << markerShift);
+      m_pt = m_pt | (1 << markerShift);
     }
-    buf.writeUInt8(pt, offset++);
-    buf.writeUInt16BE(this.sequenceNumber, offset);
+    buf.writeUInt8(m_pt, offset++);
+    buf.writeUInt16BE(this.sequenceNumber, seqNumOffset);
     offset += 2;
-    buf.writeUInt32BE(this.timestamp, offset);
+    buf.writeUInt32BE(this.timestamp, timestampOffset);
     offset += 4;
-    buf.writeUInt32BE(this.ssrc, offset);
+    buf.writeUInt32BE(this.ssrc, ssrcOffset);
     offset += 4;
 
     this.csrc.forEach((csrc) => {
@@ -253,30 +256,33 @@ class Header {
 }
 
 export class Packet {
-  constructor(
-    public header: Header,
-    public raw: Buffer,
-    public payload: Buffer
-  ) {}
+  constructor(public header: Header, public payload: Buffer) {}
 
   get serializeSize() {
     return this.header.serializeSize + this.payload.length;
   }
 
   serialize() {
-    const buf = this.header.serialize(
+    let buf = this.header.serialize(
       this.header.serializeSize + this.payload.length
     );
     const n = this.header.payloadOffset;
     this.payload.copy(buf, n);
-    this.raw = buf.slice(0, n + this.payload.length);
+    if (this.header.padding) {
+      const padding = Buffer.alloc(this.header.paddingSize);
+      padding.writeUInt8(this.header.paddingSize, this.header.paddingSize - 1);
+      buf = Buffer.concat([buf, padding]);
+    }
 
     return buf;
   }
 
   static deSerialize(buf: Buffer) {
-    const header = Header.deSerialize(buf.slice(0, 20));
-    const p = new Packet(header, buf, buf.slice(header.payloadOffset));
+    const header = Header.deSerialize(buf);
+    const p = new Packet(
+      header,
+      buf.slice(header.payloadOffset, buf.length - header.paddingSize)
+    );
     return p;
   }
 }

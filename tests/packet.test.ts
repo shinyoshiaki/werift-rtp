@@ -164,7 +164,9 @@ describe("packet", () => {
     expect(h.sequenceNumber).toBe(22138);
     expect(h.timestamp).toBe(3171065731);
     expect(h.csrc).toEqual([]);
-
+    const payload = Buffer.alloc(3);
+    payload.writeUIntBE(15846540, 0, 3);
+    expect(h.extensions).toEqual([{ id: 2, payload }]);
     expect(h.padding).toBe(true);
     expect(h.paddingSize).toBe(224);
     expect(p.payload.length).toBe(0);

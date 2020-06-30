@@ -47,6 +47,8 @@ describe("packet", () => {
 
     expect(parsed.header.serializeSize).toBe(20);
     expect(parsed.serializeSize).toBe(raw.length);
+
+    expect(parsed.serialize()).toEqual(raw);
   });
 
   test("TestRFC8285OneByteExtension", () => {

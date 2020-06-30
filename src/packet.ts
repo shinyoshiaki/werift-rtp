@@ -175,9 +175,80 @@ class Header {
     return size;
   }
 
-  serialize() {
-    const buf = [];
-    buf.push();
+  serialize(size: number) {
+    const buf = Buffer.alloc(size);
+    let offset = 0;
+
+    let vpxcc = (this.version << versionShift) | this.csrc.length;
+    if (this.padding) {
+      vpxcc = vpxcc | (1 << paddingShift);
+    }
+    if (this.extension) {
+      vpxcc = vpxcc | (1 << extensionShift);
+    }
+    buf.writeUInt8(vpxcc, offset++);
+    let pt = this.payloadType;
+    if (this.marker) {
+      pt = pt | (1 << markerShift);
+    }
+    buf.writeUInt8(pt, offset++);
+    buf.writeUInt16BE(this.sequenceNumber, offset);
+    offset += 2;
+    buf.writeUInt32BE(this.timestamp, offset);
+    offset += 4;
+    buf.writeUInt32BE(this.ssrc, offset);
+    offset += 4;
+
+    this.csrc.forEach((csrc) => {
+      buf.writeUInt32BE(csrc, offset);
+      offset += 4;
+    });
+
+    if (this.extension) {
+      const extHeaderPos = offset;
+      buf.writeUInt16BE(this.extensionProfile, offset);
+      offset += 4;
+      const startExtensionsPos = offset;
+
+      switch (this.extensionProfile) {
+        case extensionProfileOneByte:
+          this.extensions.forEach((extension) => {
+            buf.writeUInt8(
+              (extension.id << 4) | (extension.payload.length - 1),
+              offset++
+            );
+            extension.payload.copy(buf, offset);
+            offset += extension.payload.length;
+          });
+          break;
+        case extensionProfileTwoByte:
+          this.extensions.forEach((extension) => {
+            buf.writeUInt8(extension.id, offset++);
+            buf.writeUInt8(extension.payload.length, offset++);
+            extension.payload.copy(buf, offset);
+            offset += extension.payload.length;
+          });
+          break;
+        default:
+          const extLen = this.extensions[0].payload.length;
+          if (extLen % 4 != 0) {
+            throw new Error();
+          }
+          this.extensions[0].payload.copy(buf, offset);
+          offset += extLen;
+      }
+
+      const extSize = offset - startExtensionsPos;
+      const roundedExtSize = Math.floor((extSize + 3) / 4) * 4;
+
+      buf.writeInt16BE(Math.floor(roundedExtSize / 4), extHeaderPos + 2);
+      for (let i = 0; i < roundedExtSize - extSize; i++) {
+        buf.writeUInt8(0, offset);
+        offset++;
+      }
+    }
+    this.payloadOffset = offset;
+    return buf;
   }
 }
 
@@ -190,6 +261,17 @@ export class Packet {
 
   get serializeSize() {
     return this.header.serializeSize + this.payload.length;
+  }
+
+  serialize() {
+    const buf = this.header.serialize(
+      this.header.serializeSize + this.payload.length
+    );
+    const n = this.header.payloadOffset;
+    this.payload.copy(buf, n);
+    this.raw = buf.slice(0, n + this.payload.length);
+
+    return buf;
   }
 
   static deSerialize(buf: Buffer) {

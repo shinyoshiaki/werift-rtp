@@ -1,3 +1,5 @@
+import { setBit } from "./utils";
+
 type Extension = { id: number; payload: Buffer };
 
 const versionShift = 6;
@@ -182,19 +184,17 @@ class Header {
     const buf = Buffer.alloc(size);
     let offset = 0;
 
-    let v_p_x_cc = (this.version << versionShift) | this.csrc.length;
-    if (this.padding) {
-      v_p_x_cc = v_p_x_cc | (1 << paddingShift);
-    }
-    if (this.extension) {
-      v_p_x_cc = v_p_x_cc | (1 << extensionShift);
-    }
-    buf.writeUInt8(v_p_x_cc, offset++);
-    let m_pt = this.payloadType;
-    if (this.marker) {
-      m_pt = m_pt | (1 << markerShift);
-    }
-    buf.writeUInt8(m_pt, offset++);
+    const v_p_x_cc = { v: 0 };
+    setBit(v_p_x_cc, this.version, 1);
+    if (this.padding) setBit(v_p_x_cc, 1, 2);
+    if (this.extension) setBit(v_p_x_cc, 1, 3);
+    buf.writeUInt8(v_p_x_cc.v, offset++);
+
+    const m_pt = { v: 0 };
+    if (this.marker) setBit(m_pt, 1, 0);
+    setBit(m_pt, this.payloadType, 1, 7);
+    buf.writeUInt8(m_pt.v, offset++);
+
     buf.writeUInt16BE(this.sequenceNumber, seqNumOffset);
     offset += 2;
     buf.writeUInt32BE(this.timestamp, timestampOffset);

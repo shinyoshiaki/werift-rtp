@@ -1,4 +1,4 @@
-import { Packet } from "../src/packet";
+import { Packet } from "../src/rtp/packet";
 import { load } from "./utils";
 
 describe("packet", () => {

@@ -1,1 +1,1 @@
-export { Packet } from "./packet";
+export { Packet } from "./rtp/packet";

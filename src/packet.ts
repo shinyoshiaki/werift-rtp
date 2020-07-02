@@ -191,7 +191,7 @@ class Header {
     setBit(v_p_x_cc, this.version, 1);
     if (this.padding) setBit(v_p_x_cc, 1, 2);
     if (this.extension) setBit(v_p_x_cc, 1, 3);
-    setBit(v_p_x_cc, this.csrc.length, 7);
+    setBit(v_p_x_cc, this.csrc.length, 4, 4);
     buf.writeUInt8(v_p_x_cc.v, offset++);
 
     const m_pt = { v: 0 };

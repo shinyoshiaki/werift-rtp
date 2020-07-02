@@ -172,4 +172,20 @@ describe("packet", () => {
     expect(p.payload.length).toBe(0);
     expect(p.serialize()).toEqual(data);
   });
+
+  test("test_with_csrc", () => {
+    const data = load("rtp_with_csrc.bin");
+    const p = Packet.deSerialize(data);
+    const h = p.header;
+    expect(h.version).toBe(2);
+    expect(h.marker).toBe(false);
+    expect(h.payloadType).toBe(0);
+    expect(h.sequenceNumber).toBe(16082);
+    expect(h.timestamp).toBe(144);
+    expect(h.csrc).toEqual([2882400001, 3735928559]);
+    expect(p.header.extensions).toEqual([]);
+    expect(p.payload.length).toBe(160);
+    const buf = p.serialize();
+    expect(buf).toEqual(data);
+  });
 });

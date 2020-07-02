@@ -54,24 +54,27 @@ class Header {
 
   static deSerialize(rawPacket: Buffer) {
     const h = new Header();
-    h.version = rawPacket[0] >> versionShift;
-    h.padding = ((rawPacket[0] >> paddingShift) & paddingMask) > 0;
-    h.extension = ((rawPacket[0] >> extensionShift) & extensionMask) > 0;
-    h.csrc = new Array(rawPacket[0] & ccMask);
+    let currOffset = 0;
+    const v_p_x_cc = rawPacket[currOffset++];
+    h.version = v_p_x_cc >> versionShift;
+    h.padding = ((v_p_x_cc >> paddingShift) & paddingMask) > 0;
+    h.extension = ((v_p_x_cc >> extensionShift) & extensionMask) > 0;
+    const cc = v_p_x_cc & ccMask;
+    h.csrc = [...Array(cc)].map(() => {
+      const csrc = rawPacket.readUInt32BE(currOffset);
+      currOffset += 4;
+      return csrc;
+    });
+    currOffset += csrcOffset - 1;
 
-    let currOffset = csrcOffset + h.csrc.length * csrcLength;
+    const m_pt = rawPacket[1];
+    h.marker = m_pt >> markerShift > 0;
+    h.payloadType = m_pt & ptMask;
 
-    h.marker = rawPacket[1] >> markerShift > 0;
-    h.payloadType = rawPacket[1] & ptMask;
-    h.sequenceNumber = rawPacket
-      .slice(seqNumOffset, seqNumOffset + seqNumLength)
-      .readInt16BE();
-    h.timestamp = rawPacket
-      .slice(timestampOffset, timestampOffset + timestampLength)
-      .readUInt32BE();
-    h.ssrc = rawPacket
-      .slice(ssrcOffset, ssrcOffset + ssrcLength)
-      .readUInt32BE();
+    h.sequenceNumber = rawPacket.readInt16BE(seqNumOffset);
+    h.timestamp = rawPacket.readUInt32BE(timestampOffset);
+    h.ssrc = rawPacket.readUInt32BE(ssrcOffset);
+
     for (let i = 0; i < h.csrc.length; i++) {
       const offset = csrcOffset + i * csrcLength;
       h.csrc[i] = rawPacket.slice(offset).readUInt32BE();
@@ -188,6 +191,7 @@ class Header {
     setBit(v_p_x_cc, this.version, 1);
     if (this.padding) setBit(v_p_x_cc, 1, 2);
     if (this.extension) setBit(v_p_x_cc, 1, 3);
+    setBit(v_p_x_cc, this.csrc.length, 7);
     buf.writeUInt8(v_p_x_cc.v, offset++);
 
     const m_pt = { v: 0 };

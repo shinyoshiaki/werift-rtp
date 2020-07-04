@@ -1,5 +1,7 @@
-import { Packet } from "../src/rtp/packet";
+import { RtpPacket } from "../src/rtp/packet";
 import { load } from "./utils";
+import { RtcpPacket } from "../src/rtcp/rtcp";
+import { RtcpSrPacket } from "../src/rtcp/sr";
 
 describe("packet", () => {
   test("basic", () => {
@@ -31,7 +33,7 @@ describe("packet", () => {
       0x9e,
     ]);
 
-    const parsed = Packet.deSerialize(raw);
+    const parsed = RtpPacket.deSerialize(raw);
     expect(parsed.header.version).toBe(2);
     expect(parsed.header.marker).toBe(true);
     expect(parsed.header.extension).toBe(true);
@@ -79,7 +81,7 @@ describe("packet", () => {
       0x88,
       0x9e,
     ]);
-    const p = Packet.deSerialize(raw);
+    const p = RtpPacket.deSerialize(raw);
     expect(p.header.extension).toBe(true);
     expect(p.header.extensionProfile).toBe(0xbede);
     expect(p.header.extensions).toEqual([
@@ -116,7 +118,7 @@ describe("packet", () => {
       0x9e,
     ]);
 
-    const p = Packet.deSerialize(raw);
+    const p = RtpPacket.deSerialize(raw);
     expect(p.header.extensionProfile).toBe(0xbede);
     expect(p.header.extensions).toEqual([
       { id: 1, payload: Buffer.from([0xaa]) },
@@ -126,7 +128,7 @@ describe("packet", () => {
 
   test("dtmf", () => {
     const data = load("rtp_dtmf.bin");
-    const p = Packet.deSerialize(data);
+    const p = RtpPacket.deSerialize(data);
     const h = p.header;
     expect(h.version).toBe(2);
     expect(h.marker).toBe(true);
@@ -141,7 +143,7 @@ describe("packet", () => {
 
   test("test_no_ssrc", () => {
     const data = load("rtp.bin");
-    const p = Packet.deSerialize(data);
+    const p = RtpPacket.deSerialize(data);
     const h = p.header;
     expect(h.version).toBe(2);
     expect(h.marker).toBe(false);
@@ -156,7 +158,7 @@ describe("packet", () => {
 
   test("test_padding_only_with_header_extensions", () => {
     const data = load("rtp_only_padding_with_header_extensions.bin");
-    const p = Packet.deSerialize(data);
+    const p = RtpPacket.deSerialize(data);
     const h = p.header;
     expect(h.version).toBe(2);
     expect(h.marker).toBe(false);
@@ -175,7 +177,7 @@ describe("packet", () => {
 
   test("test_with_csrc", () => {
     const data = load("rtp_with_csrc.bin");
-    const p = Packet.deSerialize(data);
+    const p = RtpPacket.deSerialize(data);
     const h = p.header;
     expect(h.version).toBe(2);
     expect(h.marker).toBe(false);
@@ -187,5 +189,27 @@ describe("packet", () => {
     expect(p.payload.length).toBe(160);
     const buf = p.serialize();
     expect(buf).toEqual(data);
+  });
+
+  test("test_sr", () => {
+    const data = load("rtcp_sr.bin");
+    const packets: RtcpSrPacket[] = RtcpPacket.deSerialize(data);
+    expect(packets.length).toBe(1);
+
+    const packet = packets[0];
+    expect(packet.ssrc).toBe(1831097322);
+    expect(packet.senderInfo.ntpTimestamp).toBe(BigInt("16016567581311369308"));
+    expect(packet.senderInfo.rtpTimestamp).toBe(1722342718);
+    expect(packet.senderInfo.packetCount).toBe(269);
+    expect(packet.senderInfo.octetCount).toBe(13557);
+    expect(packet.reports.length).toBe(1);
+    const report = packet.reports[0];
+    expect(report.ssrc).toBe(2398654957);
+    expect(report.fractionLost).toBe(0);
+    expect(report.packetsLost).toBe(0);
+    expect(report.highestSequence).toBe(246);
+    expect(report.jitter).toBe(127);
+    expect(report.lsr).toBe(0);
+    expect(report.dlsr).toBe(0);
   });
 });

@@ -25,10 +25,12 @@
   },
   "dependencies": {
     "binary-data": "^0.6.0",
-    "jspack": "^0.0.4"
+    "jspack": "^0.0.4",
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "@types/jest": "^26.0.0",
+    "@types/lodash": "^4.14.157",
     "@types/node": "^14.0.1",
     "@typescript-eslint/eslint-plugin": "^3.3.0",
     "@typescript-eslint/parser": "^3.3.0",

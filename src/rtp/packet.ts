@@ -259,7 +259,7 @@ class Header {
   }
 }
 
-export class Packet {
+export class RtpPacket {
   constructor(public header: Header, public payload: Buffer) {}
 
   get serializeSize() {
@@ -283,7 +283,7 @@ export class Packet {
 
   static deSerialize(buf: Buffer) {
     const header = Header.deSerialize(buf);
-    const p = new Packet(
+    const p = new RtpPacket(
       header,
       buf.slice(header.payloadOffset, buf.length - header.paddingSize)
     );

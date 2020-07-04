@@ -1,4 +1,5 @@
 import { RtcpSrPacket } from "./sr";
+import { RtcpRrPacket } from "./rr";
 
 export class RtcpPacket {
   static serialize(packetType: number, count: number, payload: Buffer) {
@@ -40,6 +41,9 @@ export class RtcpPacket {
       switch (packetType) {
         case RtcpSrPacket.type:
           packets.push(RtcpSrPacket.deSerialize(payload, count));
+          break;
+        case RtcpRrPacket.type:
+          packets.push(RtcpRrPacket.deSerialize(payload, count));
           break;
       }
 

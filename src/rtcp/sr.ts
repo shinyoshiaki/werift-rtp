@@ -1,4 +1,4 @@
-import { assignClassProperties } from "../helper";
+import { assignClassProperties, bufferWriter, bufferReader } from "../helper";
 import { range } from "lodash";
 import { RtcpReceiverInfo } from "./rr";
 import { RtcpPacket } from "./rtcp";
@@ -52,27 +52,19 @@ class RtcpSenderInfo {
   }
 
   serialize() {
-    const buf = Buffer.alloc(20);
-    let offset = 0;
-    buf.writeBigUInt64BE(this.ntpTimestamp, offset);
-    offset += 8;
-    buf.writeUInt32BE(this.rtpTimestamp, offset);
-    offset += 4;
-    buf.writeUInt32BE(this.packetCount, offset);
-    offset += 4;
-    buf.writeUInt32BE(this.octetCount, offset);
-    return buf;
+    return bufferWriter(
+      [8, 4, 4, 4],
+      [this.ntpTimestamp, this.rtpTimestamp, this.packetCount, this.octetCount]
+    );
   }
 
   static deSerialize(data: Buffer) {
-    let offset = 0;
-    const ntpTimestamp = data.readBigUInt64BE(offset);
-    offset += 8;
-    const rtpTimestamp = data.readUInt32BE(offset);
-    offset += 4;
-    const packetCount = data.readUInt32BE(offset);
-    offset += 4;
-    const octetCount = data.readUInt32BE(offset);
+    const [
+      ntpTimestamp,
+      rtpTimestamp,
+      packetCount,
+      octetCount,
+    ] = bufferReader(data, [8, 4, 4, 4]);
 
     return new RtcpSenderInfo({
       ntpTimestamp,

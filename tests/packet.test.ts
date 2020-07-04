@@ -2,6 +2,7 @@ import { RtpPacket } from "../src/rtp/packet";
 import { load } from "./utils";
 import { RtcpPacket } from "../src/rtcp/rtcp";
 import { RtcpSrPacket } from "../src/rtcp/sr";
+import { RtcpRrPacket } from "../src/rtcp/rr";
 
 describe("packet", () => {
   test("basic", () => {
@@ -193,7 +194,7 @@ describe("packet", () => {
 
   test("test_sr", () => {
     const data = load("rtcp_sr.bin");
-    const packets: RtcpSrPacket[] = RtcpPacket.deSerialize(data);
+    const packets = RtcpPacket.deSerialize(data) as RtcpSrPacket[];
     expect(packets.length).toBe(1);
 
     const packet = packets[0];
@@ -209,6 +210,25 @@ describe("packet", () => {
     expect(report.packetsLost).toBe(0);
     expect(report.highestSequence).toBe(246);
     expect(report.jitter).toBe(127);
+    expect(report.lsr).toBe(0);
+    expect(report.dlsr).toBe(0);
+
+    expect(data).toEqual(packet.serialize());
+  });
+
+  test("test_rr", () => {
+    const data = load("rtcp_rr.bin");
+    const packets = RtcpPacket.deSerialize(data) as RtcpRrPacket[];
+    expect(packets.length).toBe(1);
+
+    const packet = packets[0];
+    expect(packet.ssrc).toBe(817267719);
+    const report = packet.reports[0];
+    expect(report.ssrc).toBe(1200895919);
+    expect(report.fractionLost).toBe(0);
+    expect(report.packetsLost).toBe(0);
+    expect(report.highestSequence).toBe(630);
+    expect(report.jitter).toBe(1906);
     expect(report.lsr).toBe(0);
     expect(report.dlsr).toBe(0);
 

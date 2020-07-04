@@ -1,4 +1,40 @@
-import { assignClassProperties } from "../helper";
+import { assignClassProperties, bufferWriter, bufferReader } from "../helper";
+import { RtcpPacket } from "./rtcp";
+import { range } from "lodash";
+
+export class RtcpRrPacket {
+  ssrc: number;
+  reports: RtcpReceiverInfo[] = [];
+  static type = 201;
+
+  constructor(props: Partial<RtcpRrPacket> = {}) {
+    assignClassProperties(this, props);
+  }
+
+  serialize() {
+    let payload = bufferWriter([4], [this.ssrc]);
+    payload = Buffer.concat([
+      payload,
+      ...this.reports.map((report) => report.serialize()),
+    ]);
+    return RtcpPacket.serialize(
+      RtcpRrPacket.type,
+      this.reports.length,
+      payload
+    );
+  }
+
+  static deSerialize(data: Buffer, count: number) {
+    const [ssrc] = bufferReader(data, [4]);
+    let pos = 4;
+    const reports: RtcpReceiverInfo[] = [];
+    range(count).forEach(() => {
+      reports.push(RtcpReceiverInfo.deSerialize(data.slice(pos, pos + 24)));
+      pos += 24;
+    });
+    return new RtcpRrPacket({ ssrc, reports });
+  }
+}
 
 export class RtcpReceiverInfo {
   ssrc: number;
@@ -14,39 +50,31 @@ export class RtcpReceiverInfo {
   }
 
   serialize() {
-    const buf = Buffer.alloc(24);
-    let offset = 0;
-    buf.writeUInt32BE(this.ssrc, offset);
-    offset += 4;
-    buf.writeUInt8(this.fractionLost, offset);
-    offset++;
-    buf.writeUIntBE(this.packetsLost, offset, 3);
-    offset += 3;
-    buf.writeUInt32BE(this.highestSequence, offset);
-    offset += 4;
-    buf.writeUInt32BE(this.jitter, offset);
-    offset += 4;
-    buf.writeUInt32BE(this.lsr, offset);
-    offset += 4;
-    buf.writeUInt32BE(this.dlsr, offset);
-    return buf;
+    return bufferWriter(
+      [4, 1, 3, 4, 4, 4, 4],
+      [
+        this.ssrc,
+        this.fractionLost,
+        this.packetsLost,
+        this.highestSequence,
+        this.jitter,
+        this.lsr,
+        this.dlsr,
+      ]
+    );
   }
 
   static deSerialize(data: Buffer) {
-    let offset = 0;
-    const ssrc = data.readUInt32BE(offset);
-    offset += 4;
-    const fractionLost = data.readUInt8(offset);
-    offset++;
-    const packetsLost = data.readUIntBE(offset, 3);
-    offset += 3;
-    const highestSequence = data.readUInt32BE(offset);
-    offset += 4;
-    const jitter = data.readUInt32BE(offset);
-    offset += 4;
-    const lsr = data.readUInt32BE(offset);
-    offset += 4;
-    const dlsr = data.readUInt32BE(offset);
+    const [
+      ssrc,
+      fractionLost,
+      packetsLost,
+      highestSequence,
+      jitter,
+      lsr,
+      dlsr,
+    ] = bufferReader(data, [4, 1, 3, 4, 4, 4, 4]);
+
     return new RtcpReceiverInfo({
       ssrc,
       fractionLost,

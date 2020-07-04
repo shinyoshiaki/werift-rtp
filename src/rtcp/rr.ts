@@ -13,7 +13,24 @@ export class RtcpReceiverInfo {
     assignClassProperties(this, props);
   }
 
-  serialize() {}
+  serialize() {
+    const buf = Buffer.alloc(24);
+    let offset = 0;
+    buf.writeUInt32BE(this.ssrc, offset);
+    offset += 4;
+    buf.writeUInt8(this.fractionLost, offset);
+    offset++;
+    buf.writeUIntBE(this.packetsLost, offset, 3);
+    offset += 3;
+    buf.writeUInt32BE(this.highestSequence, offset);
+    offset += 4;
+    buf.writeUInt32BE(this.jitter, offset);
+    offset += 4;
+    buf.writeUInt32BE(this.lsr, offset);
+    offset += 4;
+    buf.writeUInt32BE(this.dlsr, offset);
+    return buf;
+  }
 
   static deSerialize(data: Buffer) {
     let offset = 0;

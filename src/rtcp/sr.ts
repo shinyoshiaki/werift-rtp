@@ -1,6 +1,7 @@
 import { assignClassProperties } from "../helper";
 import { range } from "lodash";
 import { RtcpReceiverInfo } from "./rr";
+import { RtcpPacket } from "./rtcp";
 
 export class RtcpSrPacket {
   ssrc: number;
@@ -12,7 +13,20 @@ export class RtcpSrPacket {
     assignClassProperties(this, props);
   }
 
-  serialize() {}
+  serialize() {
+    let payload = Buffer.alloc(4);
+    payload.writeUInt32BE(this.ssrc);
+    payload = Buffer.concat([payload, this.senderInfo.serialize()]);
+    payload = Buffer.concat([
+      payload,
+      ...this.reports.map((report) => report.serialize()),
+    ]);
+    return RtcpPacket.serialize(
+      RtcpSrPacket.type,
+      this.reports.length,
+      payload
+    );
+  }
 
   static deSerialize(data: Buffer, count: number) {
     const ssrc = data.readUInt32BE();
@@ -37,7 +51,18 @@ class RtcpSenderInfo {
     assignClassProperties(this, props);
   }
 
-  serialize() {}
+  serialize() {
+    const buf = Buffer.alloc(20);
+    let offset = 0;
+    buf.writeBigUInt64BE(this.ntpTimestamp, offset);
+    offset += 8;
+    buf.writeUInt32BE(this.rtpTimestamp, offset);
+    offset += 4;
+    buf.writeUInt32BE(this.packetCount, offset);
+    offset += 4;
+    buf.writeUInt32BE(this.octetCount, offset);
+    return buf;
+  }
 
   static deSerialize(data: Buffer) {
     let offset = 0;

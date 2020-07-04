@@ -211,5 +211,7 @@ describe("packet", () => {
     expect(report.jitter).toBe(127);
     expect(report.lsr).toBe(0);
     expect(report.dlsr).toBe(0);
+
+    expect(data).toEqual(packet.serialize());
   });
 });

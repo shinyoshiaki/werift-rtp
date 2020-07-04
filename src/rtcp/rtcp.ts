@@ -1,6 +1,16 @@
 import { RtcpSrPacket } from "./sr";
 
 export class RtcpPacket {
+  static serialize(packetType: number, count: number, payload: Buffer) {
+    const buf = Buffer.alloc(4);
+    let offset = 0;
+    buf.writeUInt8((2 << 6) | count, offset);
+    offset++;
+    buf.writeUInt8(packetType, offset);
+    offset++;
+    buf.writeUInt16BE(Math.floor(payload.length / 4), offset);
+    return Buffer.concat([buf, payload]);
+  }
   static deSerialize(data: Buffer) {
     let pos = 0;
     const packets = [];

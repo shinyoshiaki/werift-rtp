@@ -1,5 +1,5 @@
 import { assignClassProperties, bufferWriter, bufferReader } from "../helper";
-import { RtcpPacket } from "./rtcp";
+import { RtcpPacket } from "./packet";
 import { range } from "lodash";
 
 export class RtcpRrPacket {

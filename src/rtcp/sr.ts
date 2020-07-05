@@ -1,7 +1,7 @@
 import { assignClassProperties, bufferWriter, bufferReader } from "../helper";
 import { range } from "lodash";
 import { RtcpReceiverInfo } from "./rr";
-import { RtcpPacket } from "./rtcp";
+import { RtcpPacket } from "./packet";
 
 export class RtcpSrPacket {
   ssrc: number;

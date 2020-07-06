@@ -1,6 +1,6 @@
-import { RtpPacket } from "../src/rtp/packet";
+import { RtpPacket } from "../src/rtp/rtp";
 import { load } from "./utils";
-import { RtcpPacket } from "../src/rtcp/packet";
+import { RtcpPacket } from "../src/rtcp/rtcp";
 import { RtcpSrPacket } from "../src/rtcp/sr";
 import { RtcpRrPacket } from "../src/rtcp/rr";
 

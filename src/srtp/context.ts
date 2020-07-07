@@ -1,5 +1,8 @@
 import { range } from "lodash";
 import { AES } from "aes-js";
+import { createHmac } from "crypto";
+import bigInt from "big-integer";
+
 type SrtpSSRCState = {
   ssrc: number;
   rolloverCounter: number;
@@ -16,6 +19,12 @@ export class Context {
   srtpSessionSalt = this.generateSessionSalt(2);
   srtpSessionAuthTag = this.generateSessionAuthTag(1);
   srtpBlock = new AES(this.srtpSessionKey);
+  srtpSessionAuth = createHmac("sha1", this.srtpSessionAuthTag);
+  srtcpSessionKey = this.generateSessionKey(3);
+  srtcpSessionSalt = this.generateSessionSalt(5);
+  srtcpSessionAuthTag = this.generateSessionAuthTag(4);
+  srtcpBlock = new AES(this.srtcpSessionKey);
+  srtcpSessionAuth = createHmac("sha1", this.srtcpSessionAuthTag);
 
   constructor(
     public masterKey: Buffer,
@@ -139,10 +148,13 @@ export class Context {
     const counter = Buffer.alloc(16);
     counter.writeUInt32BE(ssrc, 4);
     counter.writeUInt32BE(rolloverCounter, 8);
-    counter.writeUInt32BE(sequenceNumber << 16, 12);
+    counter.writeUInt32BE(
+      bigInt(sequenceNumber).shiftLeft(16).toJSNumber(),
+      12
+    );
 
     range(sessionSalt.length).forEach((i) => {
-      counter[i] = counter[i] * sessionSalt[i];
+      counter[i] = counter[i] ^ sessionSalt[i];
     });
     return counter;
   }

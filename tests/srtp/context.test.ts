@@ -97,7 +97,12 @@ describe("srtp/context", () => {
     const c = new Context(masterKey, masterSalt, 0);
 
     const sessionKey = c.generateSessionKey(0x00);
-    // expect(sessionKey.length).toBe(expectedSessionKey.length);
     expect(sessionKey).toEqual(expectedSessionKey);
+
+    const sessionSalt = c.generateSessionSalt(2);
+    expect(sessionSalt).toEqual(expectedSessionSalt);
+
+    const sessionAuthTag = c.generateSessionAuthTag(1);
+    expect(sessionAuthTag).toEqual(expectedSessionAuthTag);
   });
 });

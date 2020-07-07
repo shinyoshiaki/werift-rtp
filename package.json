@@ -24,11 +24,13 @@
     "unused": "organize-imports-cli src/**/*.ts"
   },
   "dependencies": {
+    "aes-js": "^3.1.2",
     "binary-data": "^0.6.0",
     "jspack": "^0.0.4",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
+    "@types/aes-js": "^3.1.1",
     "@types/jest": "^26.0.0",
     "@types/lodash": "^4.14.157",
     "@types/node": "^14.0.1",

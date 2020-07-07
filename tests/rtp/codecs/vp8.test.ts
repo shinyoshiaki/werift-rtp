@@ -1,4 +1,4 @@
-import { VP8 } from "../../src/rtp/codecs/vp8";
+import { VP8 } from "../../../src/rtp/codecs/vp8";
 
 describe("vp8", () => {
   test("normal", () => {

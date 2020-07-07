@@ -36,7 +36,7 @@ const csrcLength = 4;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 
-class Header {
+export class Header {
   version: number;
   padding: boolean;
   paddingSize: number = 0;

@@ -1,8 +1,8 @@
-import { RtpPacket } from "../src/rtp/rtp";
-import { load } from "./utils";
-import { RtcpPacket } from "../src/rtcp/rtcp";
-import { RtcpSrPacket } from "../src/rtcp/sr";
-import { RtcpRrPacket } from "../src/rtcp/rr";
+import { RtpPacket } from "../../src/rtp/rtp";
+import { load } from "../utils";
+import { RtcpPacket } from "../../src/rtcp/rtcp";
+import { RtcpSrPacket } from "../../src/rtcp/sr";
+import { RtcpRrPacket } from "../../src/rtcp/rr";
 
 describe("packet", () => {
   test("basic", () => {

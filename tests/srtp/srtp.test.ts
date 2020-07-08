@@ -49,7 +49,34 @@ describe("srtp/srtp", () => {
       Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05])
     );
     const decryptedRaw = decryptedPkt.serialize();
+    const encryptedPkt = new RtpPacket(
+      new Header({ sequenceNumber: 5000 }),
+      Buffer.from([
+        0x6d,
+        0xd3,
+        0x7e,
+        0xd5,
+        0x99,
+        0xb7,
+        0x2d,
+        0x28,
+        0xb1,
+        0xf3,
+        0xa1,
+        0xf0,
+        0xc,
+        0xfb,
+        0xfd,
+        0x8,
+      ])
+    );
+    const encryptedRaw = encryptedPkt.serialize();
 
-    // const actualEncrypted = encryptContext.encryptRTP();
+    const actualEncrypted = encryptContext.encryptRTP(
+      Buffer.from([]),
+      decryptedRaw
+    );
+
+    expect(actualEncrypted).toEqual(encryptedRaw);
   });
 });

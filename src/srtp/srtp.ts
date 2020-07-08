@@ -1,17 +1,26 @@
 import { Header } from "../rtp/rtp";
-import { createCipher } from "crypto";
+import { createCipheriv } from "crypto";
 import { Context } from "./context";
 
 export class Srtp {
   constructor(public context: Context) {}
 
-  encryptRTP(header: Header, payload: Buffer) {
-    const dst = Buffer.alloc(header.serializeSize + payload.length + 10);
+  encryptRTP(dst: Buffer, plaintext: Buffer) {
+    const header = Header.deSerialize(plaintext);
+
+    return this._encryptRTP(dst, header, plaintext.slice(header.payloadOffset));
+  }
+
+  private _encryptRTP(dst: Buffer, header: Header, payload: Buffer) {
+    dst = Buffer.concat([
+      dst,
+      Buffer.alloc(header.serializeSize + payload.length + 10),
+    ]);
 
     const s = this.context.getSRTPSRRCState(header.ssrc);
     this.context.updateRolloverCount(header.sequenceNumber, s);
 
-    header.serialize(dst.length);
+    header.serialize(dst.length).copy(dst);
     let n = header.payloadOffset;
 
     const counter = this.context.generateCounter(
@@ -20,7 +29,12 @@ export class Srtp {
       s.ssrc,
       this.context.srtpSessionSalt
     );
-    const cipher = createCipher("aes-256-ctr", counter);
+
+    const cipher = createCipheriv(
+      "aes-128-ctr",
+      this.context.srtpSessionKey,
+      counter
+    );
     const buf = cipher.update(payload);
     for (let i = n, j = 0; j < buf.length; i++, j++) {
       dst[i] = dst[i] ^ buf[j];

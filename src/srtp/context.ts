@@ -3,11 +3,11 @@ import { AES } from "aes-js";
 import { createHmac } from "crypto";
 import bigInt from "big-integer";
 
-type SrtpSSRCState = {
+export type SrtpSSRCState = {
   ssrc: number;
   rolloverCounter: number;
   rolloverHasProcessed?: boolean;
-  lastSequenceNumber?: number;
+  lastSequenceNumber: number;
 };
 
 const maxROCDisorder = 100;
@@ -113,6 +113,7 @@ export class Context {
     s = {
       ssrc,
       rolloverCounter: 0,
+      lastSequenceNumber: 0,
     };
     this.srtpSSRCStates[ssrc] = s;
     return s;
@@ -157,5 +158,17 @@ export class Context {
       counter[i] = counter[i] ^ sessionSalt[i];
     });
     return counter;
+  }
+
+  generateSrtpAuthTag(buf: Buffer, roc: number) {
+    this.srtpSessionAuth = createHmac("sha1", this.srtpSessionAuthTag);
+    const rocRaw = Buffer.alloc(4);
+    rocRaw.writeUInt32BE(roc);
+
+    return this.srtpSessionAuth
+      .update(buf)
+      .update(rocRaw)
+      .digest()
+      .slice(0, 10);
   }
 }

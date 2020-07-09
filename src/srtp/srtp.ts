@@ -7,11 +7,8 @@ export class Srtp {
 
   encryptRTP(dst: Buffer, plaintext: Buffer) {
     const header = Header.deSerialize(plaintext);
+    const payload = plaintext.slice(header.payloadOffset);
 
-    return this._encryptRTP(dst, header, plaintext.slice(header.payloadOffset));
-  }
-
-  private _encryptRTP(dst: Buffer, header: Header, payload: Buffer) {
     dst = Buffer.concat([
       dst,
       Buffer.alloc(header.serializeSize + payload.length + 10),
@@ -49,26 +46,3 @@ export class Srtp {
     return dst;
   }
 }
-
-// package main
-
-// import (
-// 	"crypto/aes"
-// 	"crypto/cipher"
-// 	"fmt"
-// )
-
-// func main() {
-// 	key := []byte{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
-// 	block, err := aes.NewCipher(key)
-// 	if err != nil {
-// 		fmt.Println("error",err)
-// 	   return
-// 	}
-// 	iv :=[]byte{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
-// 	stream := cipher.NewCTR(block, iv)
-// 	dst := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
-// 		fmt.Println(dst)
-// 	stream.XORKeyStream(dst, dst)
-// 	fmt.Println(dst)
-// }

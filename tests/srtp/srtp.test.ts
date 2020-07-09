@@ -42,41 +42,141 @@ describe("srtp/srtp", () => {
     return new Srtp(new Context(masterKey, masterSalt, 1));
   }
   test("TestRTPLifecyleNewAlloc", () => {
-    const encryptContext = buildTestContext();
+    const rtpTestCaseDecrypted = Buffer.from([
+      0x00,
+      0x01,
+      0x02,
+      0x03,
+      0x04,
+      0x05,
+    ]);
+    const rtpTestCases: [number, Buffer][] = [
+      [
+        5000,
+        Buffer.from([
+          0x6d,
+          0xd3,
+          0x7e,
+          0xd5,
+          0x99,
+          0xb7,
+          0x2d,
+          0x28,
+          0xb1,
+          0xf3,
+          0xa1,
+          0xf0,
+          0xc,
+          0xfb,
+          0xfd,
+          0x8,
+        ]),
+      ],
+      [
+        5001,
+        Buffer.from([
+          0xda,
+          0x47,
+          0xb,
+          0x2a,
+          0x74,
+          0x53,
+          0x65,
+          0xbd,
+          0x2f,
+          0xeb,
+          0xdc,
+          0x4b,
+          0x6d,
+          0x23,
+          0xf3,
+          0xde,
+        ]),
+      ],
+      [
+        5002,
+        Buffer.from([
+          0x6e,
+          0xa7,
+          0x69,
+          0x8d,
+          0x24,
+          0x6d,
+          0xdc,
+          0xbf,
+          0xec,
+          0x2,
+          0x1c,
+          0xd1,
+          0x60,
+          0x76,
+          0xc1,
+          0xe,
+        ]),
+      ],
+      [
+        5003,
+        Buffer.from([
+          0x24,
+          0x7e,
+          0x96,
+          0xc8,
+          0x7d,
+          0x33,
+          0xa2,
+          0x92,
+          0x8d,
+          0x13,
+          0x8d,
+          0xe0,
+          0x76,
+          0x9f,
+          0x8,
+          0xdc,
+        ]),
+      ],
+      [
+        5004,
+        Buffer.from([
+          0x75,
+          0x43,
+          0x28,
+          0xe4,
+          0x3a,
+          0x77,
+          0x59,
+          0x9b,
+          0x2e,
+          0xdf,
+          0x7b,
+          0x12,
+          0x68,
+          0xb,
+          0x57,
+          0x49,
+        ]),
+      ],
+    ];
+    rtpTestCases.forEach(([sequenceNumber, encrypted]) => {
+      const encryptContext = buildTestContext();
 
-    const decryptedPkt = new RtpPacket(
-      new Header({ sequenceNumber: 5000 }),
-      Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05])
-    );
-    const decryptedRaw = decryptedPkt.serialize();
-    const encryptedPkt = new RtpPacket(
-      new Header({ sequenceNumber: 5000 }),
-      Buffer.from([
-        0x6d,
-        0xd3,
-        0x7e,
-        0xd5,
-        0x99,
-        0xb7,
-        0x2d,
-        0x28,
-        0xb1,
-        0xf3,
-        0xa1,
-        0xf0,
-        0xc,
-        0xfb,
-        0xfd,
-        0x8,
-      ])
-    );
-    const encryptedRaw = encryptedPkt.serialize();
+      const decryptedPkt = new RtpPacket(
+        new Header({ sequenceNumber }),
+        rtpTestCaseDecrypted
+      );
+      const decryptedRaw = decryptedPkt.serialize();
+      const encryptedPkt = new RtpPacket(
+        new Header({ sequenceNumber }),
+        encrypted
+      );
+      const encryptedRaw = encryptedPkt.serialize();
 
-    const actualEncrypted = encryptContext.encryptRTP(
-      Buffer.from([]),
-      decryptedRaw
-    );
+      const actualEncrypted = encryptContext.encryptRTP(
+        Buffer.from([]),
+        decryptedRaw
+      );
 
-    expect(actualEncrypted).toEqual(encryptedRaw);
+      expect(actualEncrypted).toEqual(encryptedRaw);
+    });
   });
 });

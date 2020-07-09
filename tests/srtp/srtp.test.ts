@@ -159,6 +159,7 @@ describe("srtp/srtp", () => {
     ];
     rtpTestCases.forEach(([sequenceNumber, encrypted]) => {
       const encryptContext = buildTestContext();
+      const decryptContext = buildTestContext();
 
       const decryptedPkt = new RtpPacket(
         new Header({ sequenceNumber }),
@@ -171,12 +172,11 @@ describe("srtp/srtp", () => {
       );
       const encryptedRaw = encryptedPkt.serialize();
 
-      const actualEncrypted = encryptContext.encryptRTP(
-        Buffer.from([]),
-        decryptedRaw
-      );
-
+      const actualEncrypted = encryptContext.encryptRTP(decryptedRaw);
       expect(actualEncrypted).toEqual(encryptedRaw);
+
+      const actualDecrypted = decryptContext.decryptRTP(encryptedRaw);
+      expect(actualDecrypted).toEqual(decryptedRaw);
     });
   });
 });

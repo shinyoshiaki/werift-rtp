@@ -1,11 +1,47 @@
 import { Header } from "../rtp/rtp";
-import { createCipheriv } from "crypto";
+import { createCipheriv, createDecipheriv } from "crypto";
 import { Context } from "./context";
 
 export class Srtp {
   constructor(public context: Context) {}
+  decryptRTP(ciphertext: Buffer, dst: Buffer = Buffer.from([])) {
+    const header = Header.deSerialize(ciphertext);
 
-  encryptRTP(dst: Buffer, plaintext: Buffer) {
+    const s = this.context.getSRTPSRRCState(header.ssrc);
+
+    dst = Buffer.concat([dst, Buffer.alloc(ciphertext.length - 10)]);
+    this.context.updateRolloverCount(header.sequenceNumber, s);
+
+    ciphertext = ciphertext.slice(0, ciphertext.length - 10);
+
+    ciphertext.slice(0, header.payloadOffset).copy(dst);
+
+    const counter = this.context.generateCounter(
+      header.sequenceNumber,
+      s.rolloverCounter,
+      s.ssrc,
+      this.context.srtpSessionSalt
+    );
+    const cipher = createDecipheriv(
+      "aes-128-ctr",
+      this.context.srtpSessionKey,
+      counter
+    );
+    const payload = ciphertext.slice(header.payloadOffset);
+    const buf = cipher.update(payload);
+
+    for (
+      let i = header.payloadOffset, j = 0;
+      i < header.payloadOffset + payload.length;
+      i++, j++
+    ) {
+      dst[i] = dst[i] ^ buf[j];
+    }
+
+    return dst;
+  }
+
+  encryptRTP(plaintext: Buffer, dst: Buffer = Buffer.from([])) {
     const header = Header.deSerialize(plaintext);
     const payload = plaintext.slice(header.payloadOffset);
 

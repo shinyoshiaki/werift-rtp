@@ -42,3 +42,9 @@ export function bufferReader(buf: Buffer, bytes: number[]) {
     return read as any;
   });
 }
+
+export function growBufferSize(buf: Buffer, size: number) {
+  const glow = Buffer.alloc(size);
+  buf.copy(glow);
+  return glow;
+}

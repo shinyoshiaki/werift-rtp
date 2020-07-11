@@ -1,11 +1,11 @@
-import { Header } from "../rtp/rtp";
+import { RtpHeader } from "../rtp/rtp";
 import { createCipheriv, createDecipheriv } from "crypto";
 import { Context } from "./context";
 
 export class Srtp {
   constructor(public context: Context) {}
   decryptRTP(ciphertext: Buffer, dst: Buffer = Buffer.from([])) {
-    const header = Header.deSerialize(ciphertext);
+    const header = RtpHeader.deSerialize(ciphertext);
 
     const s = this.context.getSRTPSRRCState(header.ssrc);
 
@@ -42,7 +42,7 @@ export class Srtp {
   }
 
   encryptRTP(plaintext: Buffer, dst: Buffer = Buffer.from([])) {
-    const header = Header.deSerialize(plaintext);
+    const header = RtpHeader.deSerialize(plaintext);
     const payload = plaintext.slice(header.payloadOffset);
 
     dst = Buffer.concat([

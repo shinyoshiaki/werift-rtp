@@ -1,6 +1,6 @@
 import { Srtp } from "../../src/srtp/srtp";
 import { Context } from "../../src/srtp/context";
-import { RtpPacket, Header } from "../../src/rtp/rtp";
+import { RtpPacket, RtpHeader } from "../../src/rtp/rtp";
 
 describe("srtp/srtp", () => {
   function buildTestContext() {
@@ -162,12 +162,12 @@ describe("srtp/srtp", () => {
       const decryptContext = buildTestContext();
 
       const decryptedPkt = new RtpPacket(
-        new Header({ sequenceNumber }),
+        new RtpHeader({ sequenceNumber }),
         rtpTestCaseDecrypted
       );
       const decryptedRaw = decryptedPkt.serialize();
       const encryptedPkt = new RtpPacket(
-        new Header({ sequenceNumber }),
+        new RtpHeader({ sequenceNumber }),
         encrypted
       );
       const encryptedRaw = encryptedPkt.serialize();
@@ -178,5 +178,14 @@ describe("srtp/srtp", () => {
       const actualDecrypted = decryptContext.decryptRTP(encryptedRaw);
       expect(actualDecrypted).toEqual(decryptedRaw);
     });
+
+    // test("TestRTPLifecyleInPlace", () => {
+    //   rtpTestCases.forEach(([sequenceNumber, encrypted]) => {
+    //     const encryptContext = buildTestContext();
+    //     const decryptContext = buildTestContext();
+
+    //     const decryptHeader = new Header();
+    //   });
+    // });
   });
 });

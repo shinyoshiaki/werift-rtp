@@ -37,7 +37,7 @@ const csrcLength = 4;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 
-export class Header {
+export class RtpHeader {
   version: number;
   padding: boolean;
   paddingSize: number = 0;
@@ -51,12 +51,12 @@ export class Header {
   csrc: number[] = [];
   extensionProfile: number;
   extensions: Extension[] = [];
-  constructor(props: Partial<Header> = {}) {
+  constructor(props: Partial<RtpHeader> = {}) {
     assignClassProperties(this, props);
   }
 
   static deSerialize(rawPacket: Buffer) {
-    const h = new Header();
+    const h = new RtpHeader();
     let currOffset = 0;
     const v_p_x_cc = rawPacket[currOffset++];
     h.version = v_p_x_cc >> versionShift;
@@ -263,7 +263,7 @@ export class Header {
 }
 
 export class RtpPacket {
-  constructor(public header: Header, public payload: Buffer) {}
+  constructor(public header: RtpHeader, public payload: Buffer) {}
 
   get serializeSize() {
     return this.header.serializeSize + this.payload.length;
@@ -285,7 +285,7 @@ export class RtpPacket {
   }
 
   static deSerialize(buf: Buffer) {
-    const header = Header.deSerialize(buf);
+    const header = RtpHeader.deSerialize(buf);
     const p = new RtpPacket(
       header,
       buf.slice(header.payloadOffset, buf.length - header.paddingSize)

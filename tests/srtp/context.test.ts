@@ -1,4 +1,4 @@
-import { Context, SrtpSSRCState } from "../../src/srtp/context";
+import { SrtpContext, SrtpSSRCState } from "../../src/srtp/context";
 
 describe("srtp/context", () => {
   test("TestValidSessionKeys", () => {
@@ -94,7 +94,7 @@ describe("srtp/context", () => {
       0xa4,
     ]);
 
-    const c = new Context(masterKey, masterSalt, 0);
+    const c = new SrtpContext(masterKey, masterSalt, 0);
 
     const sessionKey = c.generateSessionKey(0x00);
     expect(sessionKey).toEqual(expectedSessionKey);
@@ -141,7 +141,7 @@ describe("srtp/context", () => {
       0x3e,
       0x7c,
     ]);
-    const c = new Context(masterKey, masterSalt, 1);
+    const c = new SrtpContext(masterKey, masterSalt, 1);
     const expectedCounter = Buffer.from([
       0xcf,
       0x90,
@@ -201,7 +201,7 @@ describe("srtp/context", () => {
       0x7c,
     ]);
 
-    const c = new Context(masterKey, masterSalt, 1);
+    const c = new SrtpContext(masterKey, masterSalt, 1);
     const s: SrtpSSRCState = {
       ssrc: 0,
       rolloverCounter: 0,

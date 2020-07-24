@@ -1,5 +1,5 @@
 import { Srtp } from "../../src/srtp/srtp";
-import { Context } from "../../src/srtp/context";
+import { SrtpContext } from "../../src/srtp/context";
 import { RtpPacket, RtpHeader } from "../../src/rtp/rtp";
 
 describe("srtp/srtp", () => {
@@ -39,7 +39,7 @@ describe("srtp/srtp", () => {
       0x7c,
     ]);
 
-    return new Srtp(new Context(masterKey, masterSalt, 1));
+    return new Srtp(masterKey, masterSalt, 1);
   }
   const rtpTestCaseDecrypted = Buffer.from([
     0x00,
@@ -180,6 +180,7 @@ describe("srtp/srtp", () => {
     });
   });
 
+  // 意味あるかこれ？
   test("TestRTPLifecyleInPlace", () => {
     rtpTestCases.forEach(([sequenceNumber, encrypted]) => {
       const encryptContext = buildTestContext();

@@ -1,6 +1,5 @@
-import { SrtpContext } from "../context";
-import { Transport } from "../../transport";
-import { Srtp } from "../srtp";
+import { Transport } from "../transport";
+import { Srtp } from "./context/srtp";
 
 export class Session {
   localContext: Srtp;

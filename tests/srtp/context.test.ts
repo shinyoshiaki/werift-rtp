@@ -1,4 +1,4 @@
-import { SrtpContext, SrtpSSRCState } from "../../src/srtp/context";
+import { SrtpContext, SrtpSSRCState } from "../../src/srtp/context/context";
 
 describe("srtp/context", () => {
   test("TestValidSessionKeys", () => {

@@ -1,5 +1,4 @@
-import { Srtp } from "../../src/srtp/srtp";
-import { SrtpContext } from "../../src/srtp/context";
+import { Srtp } from "../../src/srtp/context/srtp";
 import { RtpPacket, RtpHeader } from "../../src/rtp/rtp";
 
 describe("srtp/srtp", () => {

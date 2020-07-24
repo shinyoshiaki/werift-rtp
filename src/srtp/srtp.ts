@@ -1,77 +1,34 @@
-import { RtpHeader } from "../rtp/rtp";
-import { createCipheriv, createDecipheriv } from "crypto";
-import { SrtpContext } from "./context";
-import { growBufferSize } from "../helper";
+import { Transport } from "../transport";
+import { Session } from "./session";
 
-export class Srtp extends SrtpContext {
-  constructor(masterKey: Buffer, masterSalt: Buffer, profile: number) {
-    super(masterKey, masterSalt, profile);
-  }
-  decryptRTP(
-    ciphertext: Buffer,
-    dst: Buffer = Buffer.from([])
-  ): [Buffer, RtpHeader] {
-    const header = RtpHeader.deSerialize(ciphertext);
+export type SessionKeys = {
+  localMasterKey: Buffer;
+  localMasterSalt: Buffer;
+  remoteMasterKey: Buffer;
+  remoteMasterSalt: Buffer;
+};
 
-    const s = this.getSRTPSRRCState(header.ssrc);
+export type Config = {
+  keys: SessionKeys;
+  profile: number;
+};
 
-    dst = growBufferSize(dst, ciphertext.length - 10);
-    this.updateRolloverCount(header.sequenceNumber, s);
+export class SrtpSession {
+  session = new Session(this.transport);
 
-    ciphertext = ciphertext.slice(0, ciphertext.length - 10);
-
-    ciphertext.slice(0, header.payloadOffset).copy(dst);
-
-    const counter = this.generateCounter(
-      header.sequenceNumber,
-      s.rolloverCounter,
-      s.ssrc,
-      this.srtpSessionSalt
+  constructor(public transport: Transport, public config: Config) {
+    this.session.start(
+      config.keys.localMasterKey,
+      config.keys.localMasterSalt,
+      config.keys.remoteMasterKey,
+      config.keys.remoteMasterSalt,
+      config.profile,
+      this.decrypt
     );
-    const cipher = createDecipheriv(
-      "aes-128-ctr",
-      this.srtpSessionKey,
-      counter
-    );
-    const payload = ciphertext.slice(header.payloadOffset);
-    const buf = cipher.update(payload);
-    buf.copy(dst, header.payloadOffset);
-
-    return [dst, header];
   }
 
-  encryptRTP(
-    plaintext: Buffer,
-    dst: Buffer = Buffer.from([])
-  ): [Buffer, RtpHeader] {
-    const header = RtpHeader.deSerialize(plaintext);
-    const payload = plaintext.slice(header.payloadOffset);
-
-    dst = growBufferSize(dst, header.serializeSize + payload.length + 10);
-
-    const s = this.getSRTPSRRCState(header.ssrc);
-    this.updateRolloverCount(header.sequenceNumber, s);
-
-    header.serialize(dst.length).copy(dst);
-    let n = header.payloadOffset;
-
-    const counter = this.generateCounter(
-      header.sequenceNumber,
-      s.rolloverCounter,
-      s.ssrc,
-      this.srtpSessionSalt
-    );
-
-    const cipher = createCipheriv("aes-128-ctr", this.srtpSessionKey, counter);
-    const buf = cipher.update(payload);
-    buf.copy(dst, header.payloadOffset);
-    n += payload.length;
-
-    const authTag = this.generateSrtpAuthTag(
-      dst.slice(0, n),
-      s.rolloverCounter
-    );
-    authTag.copy(dst, n);
-    return [dst, header];
-  }
+  decrypt = (buf: Buffer) => {
+    const [decrypted] = this.session.remoteContext.decryptRTP(buf, buf);
+    return decrypted;
+  };
 }

@@ -1,11 +1,11 @@
 import { Transport } from "../transport";
 import { Session, Config } from "./session";
-import { RtpHeader } from "../rtp/rtp";
-import { SrtpContext } from "./context/srtp";
+import { SrtcpContext } from "./context/srtcp";
 
-export class SrtpSession extends Session<SrtpContext> {
+export class SrtcpSession extends Session<SrtcpContext> {
   constructor(transport: Transport, public config: Config) {
-    super(transport, SrtpContext);
+    super(transport, SrtcpContext);
+
     this.start(
       config.keys.localMasterKey,
       config.keys.localMasterSalt,
@@ -20,9 +20,4 @@ export class SrtpSession extends Session<SrtpContext> {
     const [decrypted] = this.remoteContext.decryptRTP(buf);
     return decrypted;
   };
-
-  sendRTP(header: RtpHeader, payload: Buffer) {
-    const [enc] = this.localContext.encryptRTP(payload, header);
-    this.transport.send(enc);
-  }
 }

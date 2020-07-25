@@ -13,7 +13,7 @@ export type SrtpSSRCState = {
 const maxROCDisorder = 100;
 const maxSequenceNumber = 65535;
 
-export class SrtpContext {
+export class Context {
   srtpSSRCStates: { [key: number]: SrtpSSRCState } = {};
   srtpSessionKey = this.generateSessionKey(0);
   srtpSessionSalt = this.generateSessionSalt(2);

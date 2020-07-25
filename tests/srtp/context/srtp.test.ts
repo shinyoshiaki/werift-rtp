@@ -1,4 +1,4 @@
-import { Srtp } from "../../../src/srtp/context/srtp";
+import { SrtpContext } from "../../../src/srtp/context/srtp";
 import { RtpPacket, RtpHeader } from "../../../src/rtp/rtp";
 
 describe("srtp/srtp", () => {
@@ -38,7 +38,7 @@ describe("srtp/srtp", () => {
       0x7c,
     ]);
 
-    return new Srtp(masterKey, masterSalt, 1);
+    return new SrtpContext(masterKey, masterSalt, 1);
   }
   const rtpTestCaseDecrypted = Buffer.from([
     0x00,

@@ -1,6 +1,7 @@
-import { Config, SrtpSession } from "../../src/srtp/srtp";
+import { SrtpSession } from "../../src/srtp/srtp";
 import { createMockTransportPair } from "../utils";
 import { RtpHeader, RtpPacket } from "../../src/rtp/rtp";
+import { Config } from "../../src/srtp/session";
 
 function buildSessionSRTPPair(): [SrtpSession, SrtpSession] {
   const config: Config = {

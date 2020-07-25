@@ -19,7 +19,7 @@
     "format": "prettier --write src/**/*.ts",
     "lint": "eslint src/**/*.ts",
     "publish": "npm publish --access=public",
-    "test": "jest --forceExit",
+    "test": "yarn type && jest --forceExit",
     "type": "tsc --noEmit -p .",
     "unused": "organize-imports-cli src/**/*.ts"
   },

@@ -3,7 +3,7 @@ import { createCipheriv, createDecipheriv } from "crypto";
 import { Context } from "./context";
 import { growBufferSize } from "../../helper";
 
-export class SrtpContext extends Context {
+export class SrtcpContext extends Context {
   constructor(masterKey: Buffer, masterSalt: Buffer, profile: number) {
     super(masterKey, masterSalt, profile);
   }

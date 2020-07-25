@@ -7,14 +7,12 @@ export class Srtp extends SrtpContext {
   constructor(masterKey: Buffer, masterSalt: Buffer, profile: number) {
     super(masterKey, masterSalt, profile);
   }
-  decryptRTP(
-    ciphertext: Buffer,
-    dst: Buffer = Buffer.from([])
-  ): [Buffer, RtpHeader] {
-    const header = RtpHeader.deSerialize(ciphertext);
+  decryptRTP(ciphertext: Buffer, header?: RtpHeader): [Buffer, RtpHeader] {
+    header = header || RtpHeader.deSerialize(ciphertext);
 
     const s = this.getSRTPSRRCState(header.ssrc);
 
+    let dst = Buffer.from([]);
     dst = growBufferSize(dst, ciphertext.length - 10);
     this.updateRolloverCount(header.sequenceNumber, s);
 
@@ -40,13 +38,11 @@ export class Srtp extends SrtpContext {
     return [dst, header];
   }
 
-  encryptRTP(
-    plaintext: Buffer,
-    dst: Buffer = Buffer.from([])
-  ): [Buffer, RtpHeader] {
-    const header = RtpHeader.deSerialize(plaintext);
+  encryptRTP(plaintext: Buffer, header?: RtpHeader): [Buffer, RtpHeader] {
+    header = header || RtpHeader.deSerialize(plaintext);
     const payload = plaintext.slice(header.payloadOffset);
 
+    let dst = Buffer.from([]);
     dst = growBufferSize(dst, header.serializeSize + payload.length + 10);
 
     const s = this.getSRTPSRRCState(header.ssrc);

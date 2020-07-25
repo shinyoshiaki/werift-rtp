@@ -1,12 +1,13 @@
 import { Transport } from "../transport";
 import { Srtp } from "./context/srtp";
+import { RtpHeader } from "../rtp/rtp";
 
 export class Session {
   localContext: Srtp;
   remoteContext: Srtp;
   onData?: (buf: Buffer) => void;
 
-  constructor(private transport: Transport) {}
+  constructor(public transport: Transport) {}
 
   start(
     localMasterKey: Buffer,
@@ -23,5 +24,10 @@ export class Session {
       const dec = decrypt(data);
       this.onData(dec);
     };
+  }
+
+  sendRTP(header: RtpHeader, payload: Buffer) {
+    const [enc] = this.localContext.encryptRTP(payload, header);
+    this.transport.send(enc);
   }
 }

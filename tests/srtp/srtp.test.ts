@@ -1,219 +1,100 @@
-import { Srtp } from "../../src/srtp/context/srtp";
-import { RtpPacket, RtpHeader } from "../../src/rtp/rtp";
+import { Config, SrtpSession } from "../../src/srtp/srtp";
+import { createMockTransportPair } from "../utils";
+import { RtpHeader, RtpPacket } from "../../src/rtp/rtp";
 
-describe("srtp/srtp", () => {
-  function buildTestContext() {
-    const masterKey = Buffer.from([
-      0x0d,
-      0xcd,
-      0x21,
-      0x3e,
-      0x4c,
-      0xbc,
-      0xf2,
-      0x8f,
-      0x01,
-      0x7f,
-      0x69,
-      0x94,
-      0x40,
-      0x1e,
-      0x28,
-      0x89,
-    ]);
-    const masterSalt = Buffer.from([
-      0x62,
-      0x77,
-      0x60,
-      0x38,
-      0xc0,
-      0x6d,
-      0xc9,
-      0x41,
-      0x9f,
-      0x6d,
-      0xd9,
-      0x43,
-      0x3e,
-      0x7c,
-    ]);
-
-    return new Srtp(masterKey, masterSalt, 1);
-  }
-  const rtpTestCaseDecrypted = Buffer.from([
-    0x00,
-    0x01,
-    0x02,
-    0x03,
-    0x04,
-    0x05,
-  ]);
-  const rtpTestCases: [number, Buffer][] = [
-    [
-      5000,
-      Buffer.from([
-        0x6d,
-        0xd3,
-        0x7e,
-        0xd5,
-        0x99,
-        0xb7,
-        0x2d,
-        0x28,
-        0xb1,
-        0xf3,
-        0xa1,
-        0xf0,
-        0xc,
-        0xfb,
-        0xfd,
-        0x8,
-      ]),
-    ],
-    [
-      5001,
-      Buffer.from([
-        0xda,
-        0x47,
-        0xb,
-        0x2a,
-        0x74,
-        0x53,
-        0x65,
-        0xbd,
-        0x2f,
-        0xeb,
-        0xdc,
-        0x4b,
-        0x6d,
-        0x23,
-        0xf3,
-        0xde,
-      ]),
-    ],
-    [
-      5002,
-      Buffer.from([
-        0x6e,
-        0xa7,
-        0x69,
-        0x8d,
-        0x24,
-        0x6d,
-        0xdc,
-        0xbf,
-        0xec,
-        0x2,
-        0x1c,
-        0xd1,
-        0x60,
-        0x76,
-        0xc1,
-        0xe,
-      ]),
-    ],
-    [
-      5003,
-      Buffer.from([
-        0x24,
-        0x7e,
-        0x96,
-        0xc8,
-        0x7d,
-        0x33,
-        0xa2,
-        0x92,
-        0x8d,
-        0x13,
-        0x8d,
+function buildSessionSRTPPair(): [SrtpSession, SrtpSession] {
+  const config: Config = {
+    profile: 0x0001,
+    keys: {
+      localMasterKey: Buffer.from([
+        0xe1,
+        0xf9,
+        0x7a,
+        0x0d,
+        0x3e,
+        0x01,
+        0x8b,
         0xe0,
-        0x76,
-        0x9f,
-        0x8,
-        0xdc,
+        0xd6,
+        0x4f,
+        0xa3,
+        0x2c,
+        0x06,
+        0xde,
+        0x41,
+        0x39,
       ]),
-    ],
-    [
-      5004,
-      Buffer.from([
+      localMasterSalt: Buffer.from([
+        0x0e,
+        0xc6,
         0x75,
-        0x43,
-        0x28,
-        0xe4,
-        0x3a,
-        0x77,
-        0x59,
-        0x9b,
-        0x2e,
-        0xdf,
-        0x7b,
-        0x12,
-        0x68,
-        0xb,
-        0x57,
+        0xad,
         0x49,
+        0x8a,
+        0xfe,
+        0xeb,
+        0xb6,
+        0x96,
+        0x0b,
+        0x3a,
+        0xab,
+        0xe6,
       ]),
-    ],
-  ];
-  test("TestRTPLifecyleNewAlloc", () => {
-    rtpTestCases.forEach(([sequenceNumber, encrypted]) => {
-      const encryptContext = buildTestContext();
-      const decryptContext = buildTestContext();
+      remoteMasterKey: Buffer.from([
+        0xe1,
+        0xf9,
+        0x7a,
+        0x0d,
+        0x3e,
+        0x01,
+        0x8b,
+        0xe0,
+        0xd6,
+        0x4f,
+        0xa3,
+        0x2c,
+        0x06,
+        0xde,
+        0x41,
+        0x39,
+      ]),
+      remoteMasterSalt: Buffer.from([
+        0x0e,
+        0xc6,
+        0x75,
+        0xad,
+        0x49,
+        0x8a,
+        0xfe,
+        0xeb,
+        0xb6,
+        0x96,
+        0x0b,
+        0x3a,
+        0xab,
+        0xe6,
+      ]),
+    },
+  };
+  const [a, b] = createMockTransportPair();
+  const aSession = new SrtpSession(a, config);
+  const bSession = new SrtpSession(b, config);
 
-      const decryptedPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
-        rtpTestCaseDecrypted
-      );
-      const decryptedRaw = decryptedPkt.serialize();
-      const encryptedPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
-        encrypted
-      );
-      const encryptedRaw = encryptedPkt.serialize();
+  return [aSession, bSession];
+}
 
-      const [actualEncrypted] = encryptContext.encryptRTP(decryptedRaw);
-      expect(actualEncrypted).toEqual(encryptedRaw);
+describe("srtp", () => {
+  test("TestSessionSRTP", () => {
+    const testPayload = Buffer.from([0x00, 0x01, 0x03, 0x04]);
+    const [aSession, bSession] = buildSessionSRTPPair();
 
-      const [actualDecrypted] = decryptContext.decryptRTP(encryptedRaw);
-      expect(actualDecrypted).toEqual(decryptedRaw);
-    });
-  });
+    bSession.transport.onData = (buf) => {
+      const dec = bSession.decrypt(buf);
+      const rtp = RtpPacket.deSerialize(buf);
+      expect(rtp.header.ssrc).toBe(5000);
+      expect(testPayload).toEqual(dec.slice(12));
+    };
 
-  // 意味あるかこれ？
-  test("TestRTPLifecyleInPlace", () => {
-    rtpTestCases.forEach(([sequenceNumber, encrypted]) => {
-      const encryptContext = buildTestContext();
-      const decryptContext = buildTestContext();
-
-      const decryptPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
-        rtpTestCaseDecrypted
-      );
-      const decryptedRaw = decryptPkt.serialize();
-
-      const encryptedPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
-        encrypted
-      );
-      const encryptedRaw = encryptedPkt.serialize();
-
-      const encryptInput = Buffer.from(decryptedRaw);
-
-      const [actualEncrypted, encryptHeader] = encryptContext.encryptRTP(
-        encryptInput,
-        encryptInput
-      );
-      expect(encryptHeader.sequenceNumber).toBe(sequenceNumber);
-      expect(actualEncrypted).toEqual(encryptedRaw);
-
-      const decryptInput = Buffer.from(encryptedRaw);
-
-      const [actualDecrypted, decryptHeader] = decryptContext.decryptRTP(
-        decryptInput,
-        decryptInput
-      );
-      expect(decryptHeader.sequenceNumber).toBe(sequenceNumber);
-      expect(actualDecrypted).toEqual(decryptedRaw);
-    });
+    aSession.sendRTP(new RtpHeader({ ssrc: 5000 }), testPayload);
   });
 });

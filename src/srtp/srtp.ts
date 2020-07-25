@@ -1,5 +1,6 @@
 import { Transport } from "../transport";
 import { Session } from "./session";
+import { RtpHeader } from "../rtp/rtp";
 
 export type SessionKeys = {
   localMasterKey: Buffer;
@@ -13,11 +14,10 @@ export type Config = {
   profile: number;
 };
 
-export class SrtpSession {
-  session = new Session(this.transport);
-
-  constructor(public transport: Transport, public config: Config) {
-    this.session.start(
+export class SrtpSession extends Session {
+  constructor(transport: Transport, public config: Config) {
+    super(transport);
+    this.start(
       config.keys.localMasterKey,
       config.keys.localMasterSalt,
       config.keys.remoteMasterKey,
@@ -28,7 +28,7 @@ export class SrtpSession {
   }
 
   decrypt = (buf: Buffer) => {
-    const [decrypted] = this.session.remoteContext.decryptRTP(buf, buf);
+    const [decrypted] = this.remoteContext.decryptRTP(buf);
     return decrypted;
   };
 }

@@ -7,38 +7,38 @@ export class SrtcpContext extends Context {
   constructor(masterKey: Buffer, masterSalt: Buffer, profile: number) {
     super(masterKey, masterSalt, profile);
   }
-  decryptRTP(ciphertext: Buffer, header?: RtpHeader): [Buffer, RtpHeader] {
-    header = header || RtpHeader.deSerialize(ciphertext);
+  decryptRTCP(encrypted: Buffer): Buffer {
+    const tailOffset = encrypted.length - (10 + 4);
+    const out = Buffer.from(encrypted).slice(0, tailOffset);
 
-    const s = this.getSRTPSRRCState(header.ssrc);
+    const isEncrypted = encrypted[tailOffset] >> 7;
+    if (isEncrypted === 0) return out;
 
-    let dst = Buffer.from([]);
-    dst = growBufferSize(dst, ciphertext.length - 10);
-    this.updateRolloverCount(header.sequenceNumber, s);
+    let index = encrypted.readUInt32BE(tailOffset);
+    index &= ~(1 << 31);
 
-    ciphertext = ciphertext.slice(0, ciphertext.length - 10);
+    const ssrc = encrypted.readUInt32BE(4);
 
-    ciphertext.slice(0, header.payloadOffset).copy(dst);
+    const actualTag = encrypted.slice(encrypted.length - 10);
 
     const counter = this.generateCounter(
-      header.sequenceNumber,
-      s.rolloverCounter,
-      s.ssrc,
-      this.srtpSessionSalt
+      index & 0xffff,
+      index >> 16,
+      ssrc,
+      this.srtcpSessionSalt
     );
     const cipher = createDecipheriv(
       "aes-128-ctr",
-      this.srtpSessionKey,
+      this.srtcpSessionKey,
       counter
     );
-    const payload = ciphertext.slice(header.payloadOffset);
+    const payload = out.slice(8);
     const buf = cipher.update(payload);
-    buf.copy(dst, header.payloadOffset);
-
-    return [dst, header];
+    buf.copy(out, 8);
+    return out;
   }
 
-  encryptRTP(plaintext: Buffer, header?: RtpHeader): [Buffer, RtpHeader] {
+  encryptRTCP(plaintext: Buffer, header?: RtpHeader): [Buffer, RtpHeader] {
     header = header || RtpHeader.deSerialize(plaintext);
     const payload = plaintext.slice(header.payloadOffset);
 

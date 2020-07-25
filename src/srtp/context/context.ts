@@ -18,12 +18,10 @@ export class Context {
   srtpSessionKey = this.generateSessionKey(0);
   srtpSessionSalt = this.generateSessionSalt(2);
   srtpSessionAuthTag = this.generateSessionAuthTag(1);
-  srtpBlock = new AES(this.srtpSessionKey);
   srtpSessionAuth = createHmac("sha1", this.srtpSessionAuthTag);
   srtcpSessionKey = this.generateSessionKey(3);
   srtcpSessionSalt = this.generateSessionSalt(5);
   srtcpSessionAuthTag = this.generateSessionAuthTag(4);
-  srtcpBlock = new AES(this.srtcpSessionKey);
   srtcpSessionAuth = createHmac("sha1", this.srtcpSessionAuthTag);
 
   constructor(

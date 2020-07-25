@@ -1,7 +1,7 @@
 import { SrtpContext } from "../../../src/srtp/context/srtp";
 import { RtpPacket, RtpHeader } from "../../../src/rtp/rtp";
 
-describe("srtp/srtp", () => {
+describe("srtp/context/srtp", () => {
   function buildTestContext() {
     const masterKey = Buffer.from([
       0x0d,

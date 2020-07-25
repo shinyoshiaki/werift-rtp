@@ -1,5 +1,4 @@
 import { setBit } from "../utils";
-import { assignClassProperties } from "../helper";
 
 type Extension = { id: number; payload: Buffer };
 
@@ -52,7 +51,7 @@ export class RtpHeader {
   extensionProfile: number;
   extensions: Extension[] = [];
   constructor(props: Partial<RtpHeader> = {}) {
-    assignClassProperties(this, props);
+    Object.assign(this, props);
   }
 
   static deSerialize(rawPacket: Buffer) {

@@ -315,4 +315,6 @@ describe("srtp/context/srtcp", () => {
     const encryptResult = encryptContext.encryptRTCP(rtcpTestDecrypted);
     expect(encryptResult).toEqual(rtcpTestEncrypted);
   });
+
+  test("TestRTCPLifecycleInPlace", () => {});
 });

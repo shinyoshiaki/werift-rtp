@@ -311,5 +311,8 @@ describe("srtp/context/srtcp", () => {
 
     const decryptResult = decryptContext.decryptRTCP(rtcpTestEncrypted);
     expect(decryptResult).toEqual(rtcpTestDecrypted);
+
+    const encryptResult = encryptContext.encryptRTCP(rtcpTestDecrypted);
+    expect(encryptResult).toEqual(rtcpTestEncrypted);
   });
 });

@@ -10,6 +10,11 @@ export type SrtpSSRCState = {
   lastSequenceNumber: number;
 };
 
+export type SrtcpSSRCState = {
+  srtcpIndex: number;
+  ssrc: number;
+};
+
 const maxROCDisorder = 100;
 const maxSequenceNumber = 65535;
 
@@ -19,6 +24,7 @@ export class Context {
   srtpSessionSalt = this.generateSessionSalt(2);
   srtpSessionAuthTag = this.generateSessionAuthTag(1);
   srtpSessionAuth = createHmac("sha1", this.srtpSessionAuthTag);
+  srtcpSSRCStates: { [key: number]: SrtcpSSRCState } = {};
   srtcpSessionKey = this.generateSessionKey(3);
   srtcpSessionSalt = this.generateSessionSalt(5);
   srtcpSessionAuthTag = this.generateSessionAuthTag(4);
@@ -117,6 +123,17 @@ export class Context {
     return s;
   }
 
+  getSRTCPSSRCState(ssrc: number) {
+    let s = this.srtcpSSRCStates[ssrc];
+    if (s) return s;
+    s = {
+      srtcpIndex: 0,
+      ssrc,
+    };
+    this.srtcpSSRCStates[ssrc] = s;
+    return s;
+  }
+
   updateRolloverCount(sequenceNumber: number, s: SrtpSSRCState) {
     if (!s.rolloverHasProcessed) {
       s.rolloverHasProcessed = true;
@@ -168,5 +185,23 @@ export class Context {
       .update(rocRaw)
       .digest()
       .slice(0, 10);
+  }
+
+  generateSrtcpAuthTag(buf: Buffer) {
+    this.srtcpSessionAuth = createHmac("sha1", this.srtcpSessionAuthTag);
+    return this.srtcpSessionAuth.update(buf).digest().slice(0, 10);
+  }
+
+  index(ssrc: number) {
+    const s = this.srtcpSSRCStates[ssrc];
+    if (!s) {
+      return 0;
+    }
+    return s.srtcpIndex;
+  }
+
+  setIndex(ssrc: number, index: number) {
+    const s = this.getSRTCPSSRCState(ssrc);
+    s.srtcpIndex = index % 0x7fffffff;
   }
 }

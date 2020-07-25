@@ -1,7 +1,5 @@
-import { RtpHeader } from "../../rtp/rtp";
 import { createCipheriv, createDecipheriv } from "crypto";
 import { Context } from "./context";
-import { growBufferSize } from "../../helper";
 
 export class SrtcpContext extends Context {
   constructor(masterKey: Buffer, masterSalt: Buffer, profile: number) {
@@ -32,42 +30,35 @@ export class SrtcpContext extends Context {
       this.srtcpSessionKey,
       counter
     );
-    const payload = out.slice(8);
-    const buf = cipher.update(payload);
+    const buf = cipher.update(out.slice(8));
     buf.copy(out, 8);
     return out;
   }
 
-  encryptRTCP(plaintext: Buffer, header?: RtpHeader): [Buffer, RtpHeader] {
-    header = header || RtpHeader.deSerialize(plaintext);
-    const payload = plaintext.slice(header.payloadOffset);
-
-    let dst = Buffer.from([]);
-    dst = growBufferSize(dst, header.serializeSize + payload.length + 10);
-
-    const s = this.getSRTPSRRCState(header.ssrc);
-    this.updateRolloverCount(header.sequenceNumber, s);
-
-    header.serialize(dst.length).copy(dst);
-    let n = header.payloadOffset;
+  encryptRTCP(decrypted: Buffer): Buffer {
+    let out = Buffer.from(decrypted);
+    const ssrc = out.readUInt32BE(4);
+    const s = this.getSRTCPSSRCState(ssrc);
+    s.srtcpIndex++;
+    if (s.srtcpIndex >> 0x7fffffff) {
+      s.srtcpIndex = 0;
+    }
 
     const counter = this.generateCounter(
-      header.sequenceNumber,
-      s.rolloverCounter,
-      s.ssrc,
-      this.srtpSessionSalt
+      s.srtcpIndex & 0xffff,
+      s.srtcpIndex >> 16,
+      ssrc,
+      this.srtcpSessionSalt
     );
+    const cipher = createCipheriv("aes-128-ctr", this.srtcpSessionKey, counter);
+    const buf = cipher.update(out.slice(8));
+    buf.copy(out, 8);
+    out = Buffer.concat([out, Buffer.alloc(4)]);
+    out.writeUInt32BE(s.srtcpIndex, out.length - 4);
+    out[out.length - 4] |= 0x80;
+    const authTag = this.generateSrtcpAuthTag(out);
+    out = Buffer.concat([out, authTag]);
 
-    const cipher = createCipheriv("aes-128-ctr", this.srtpSessionKey, counter);
-    const buf = cipher.update(payload);
-    buf.copy(dst, header.payloadOffset);
-    n += payload.length;
-
-    const authTag = this.generateSrtpAuthTag(
-      dst.slice(0, n),
-      s.rolloverCounter
-    );
-    authTag.copy(dst, n);
-    return [dst, header];
+    return out;
   }
 }

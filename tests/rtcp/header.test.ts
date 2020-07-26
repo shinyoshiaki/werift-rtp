@@ -10,5 +10,7 @@ describe("rtcp/header", () => {
       length: 7,
     });
     expect(h.serialize()).toEqual(raw);
+    const dec = RtcpHeader.deSerialize(raw);
+    expect(raw).toEqual(dec.serialize());
   });
 });

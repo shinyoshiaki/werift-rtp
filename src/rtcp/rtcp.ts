@@ -10,12 +10,16 @@ export class RtcpPacket {
     );
     return Buffer.concat([buf, payload]);
   }
+
   static deSerialize(data: Buffer) {
     let pos = 0;
     const packets = [];
 
     while (pos < data.length) {
-      const [v_p_rc, packetType, length] = bufferReader(data, [1, 1, 2]);
+      const [v_p_rc, packetType, length] = bufferReader(
+        data.slice(pos, pos + 4),
+        [1, 1, 2]
+      );
 
       const version = v_p_rc >> 6;
       const padding = ((v_p_rc >> 5) & 1) > 0;

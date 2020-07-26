@@ -1,4 +1,5 @@
 import { SrtcpContext } from "../../../src/srtp/context/srtcp";
+import { RtcpHeader } from "../../../src/rtcp/header";
 
 const rtcpTestMasterKey = Buffer.from([
   0xfd,
@@ -309,12 +310,32 @@ describe("srtp/context/srtcp", () => {
       1
     );
 
-    const decryptResult = decryptContext.decryptRTCP(rtcpTestEncrypted);
+    const [decryptResult] = decryptContext.decryptRTCP(rtcpTestEncrypted);
     expect(decryptResult).toEqual(rtcpTestDecrypted);
 
     const encryptResult = encryptContext.encryptRTCP(rtcpTestDecrypted);
     expect(encryptResult).toEqual(rtcpTestEncrypted);
   });
 
-  test("TestRTCPLifecycleInPlace", () => {});
+  test("TestRTCPLifecycleInPlace", () => {
+    const encryptHeader = new RtcpHeader();
+    const encryptContext = new SrtcpContext(
+      rtcpTestMasterKey,
+      rtcpTestMasterSalt,
+      1
+    );
+
+    const decryptContext = new SrtcpContext(
+      rtcpTestMasterKey,
+      rtcpTestMasterSalt,
+      1
+    );
+
+    const decryptInput = Buffer.from(rtcpTestEncrypted);
+    const [actualDecrypted, decryptHeader] = decryptContext.decryptRTCP(
+      decryptInput
+    );
+    expect(decryptHeader.type).toBe(200);
+    expect(actualDecrypted).toEqual(rtcpTestDecrypted);
+  });
 });

@@ -17,7 +17,7 @@ export class SrtcpSession extends Session<SrtcpContext> {
   }
 
   decrypt = (buf: Buffer) => {
-    const decrypted = this.remoteContext.decryptRTCP(buf);
+    const [decrypted] = this.remoteContext.decryptRTCP(buf);
     return decrypted;
   };
 }

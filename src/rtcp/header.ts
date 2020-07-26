@@ -2,11 +2,11 @@ import { bufferWriter, bufferReader } from "../helper";
 import { setBit, getBit } from "../utils";
 
 export class RtcpHeader {
-  version: number;
-  padding: boolean;
-  count: number;
-  type: number;
-  length: number;
+  version: number = 0;
+  padding: boolean = false;
+  count: number = 0;
+  type: number = 0;
+  length: number = 0;
 
   constructor(props: Partial<RtcpHeader> = {}) {
     Object.assign(this, props);

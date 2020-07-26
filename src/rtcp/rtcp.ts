@@ -1,13 +1,16 @@
 import { RtcpSrPacket } from "./sr";
 import { RtcpRrPacket } from "./rr";
-import { bufferWriter, bufferReader } from "../helper";
+import { RtcpHeader } from "./header";
 
 export class RtcpPacket {
-  static serialize(packetType: number, count: number, payload: Buffer) {
-    const buf = bufferWriter(
-      [1, 1, 2],
-      [(2 << 6) | count, packetType, Math.floor(payload.length / 4)]
-    );
+  static serialize(type: number, count: number, payload: Buffer) {
+    const header = new RtcpHeader({
+      type,
+      count,
+      version: 2,
+      length: Math.floor(payload.length / 4),
+    });
+    const buf = header.serialize();
     return Buffer.concat([buf, payload]);
   }
 
@@ -16,31 +19,23 @@ export class RtcpPacket {
     const packets = [];
 
     while (pos < data.length) {
-      const [v_p_rc, packetType, length] = bufferReader(
-        data.slice(pos, pos + 4),
-        [1, 1, 2]
-      );
-
-      const version = v_p_rc >> 6;
-      const padding = ((v_p_rc >> 5) & 1) > 0;
-      const count = v_p_rc & 0x1f;
-
+      const header = RtcpHeader.deSerialize(data.slice(pos, pos + 4));
       pos += 4;
 
-      const end = pos + length * 4;
+      const end = pos + header.length * 4;
       let payload = data.slice(pos, end);
       pos = end;
 
-      if (padding) {
+      if (header.padding) {
         payload = payload.slice(0, payload.length - payload.slice(-1)[0]);
       }
 
-      switch (packetType) {
+      switch (header.type) {
         case RtcpSrPacket.type:
-          packets.push(RtcpSrPacket.deSerialize(payload, count));
+          packets.push(RtcpSrPacket.deSerialize(payload, header.count));
           break;
         case RtcpRrPacket.type:
-          packets.push(RtcpRrPacket.deSerialize(payload, count));
+          packets.push(RtcpRrPacket.deSerialize(payload, header.count));
           break;
       }
 

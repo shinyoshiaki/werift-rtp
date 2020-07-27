@@ -3,10 +3,13 @@ import { createMockTransportPair } from "../utils";
 import { RtpHeader, RtpPacket } from "../../src/rtp/rtp";
 import { Config } from "../../src/srtp/session";
 import { Transport } from "../../src/transport";
+import { RtcpPacket } from "../../src/rtcp/rtcp";
+import { RtcpRrPacket, RtcpReceiverInfo } from "../../src/rtcp/rr";
+import { SrtcpSession } from "../../src/srtp/srtcp";
 
-function buildSessionSRTPPair(): [
-  { session: SrtpSession; transport: Transport },
-  { session: SrtpSession; transport: Transport }
+function buildSessionSRTCPPair(): [
+  { session: SrtcpSession; transport: Transport },
+  { session: SrtcpSession; transport: Transport }
 ] {
   const config: Config = {
     profile: 0x0001,
@@ -82,8 +85,8 @@ function buildSessionSRTPPair(): [
     },
   };
   const [a, b] = createMockTransportPair();
-  const aSession = new SrtpSession(config);
-  const bSession = new SrtpSession(config);
+  const aSession = new SrtcpSession(config);
+  const bSession = new SrtcpSession(config);
 
   return [
     { session: aSession, transport: a },
@@ -91,22 +94,23 @@ function buildSessionSRTPPair(): [
   ];
 }
 
-describe("srtp", () => {
-  test("TestSessionSRTP", () => {
-    const testPayload = Buffer.from([0x00, 0x01, 0x03, 0x04]);
-    const [aPair, bPair] = buildSessionSRTPPair();
+describe("srtcp", () => {
+  test("TestSessionSRTCP", () => {
+    const testPayload = new RtcpRrPacket({
+      ssrc: 5000,
+      reports: [new RtcpReceiverInfo({ highestSequence: 3 })],
+    }).serialize();
+    const [aPair, bPair] = buildSessionSRTCPPair();
 
     bPair.transport.onData = (buf) => {
       const dec = bPair.session.decrypt(buf);
-      const rtp = RtpPacket.deSerialize(buf);
-      expect(rtp.header.ssrc).toBe(5000);
-      expect(testPayload).toEqual(dec.slice(12));
+      const [rr] = RtcpPacket.deSerialize(dec);
+      expect(rr.type).toBe(RtcpRrPacket.type);
+      expect(rr.ssrc).toBe(5000);
+      expect(testPayload).toEqual(dec);
     };
 
-    const enc = aPair.session.encrypt(
-      new RtpHeader({ ssrc: 5000 }),
-      testPayload
-    );
+    const enc = aPair.session.encrypt(testPayload);
     aPair.transport.send(enc);
   });
 });

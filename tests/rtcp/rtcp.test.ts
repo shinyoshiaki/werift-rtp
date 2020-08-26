@@ -46,4 +46,12 @@ describe("rtcp/rtcp", () => {
 
     expect(data).toEqual(packet.serialize());
   });
+
+  test("test_compound", () => {
+    const data = Buffer.concat([load("rtcp_sr.bin"), load("rtcp_rr.bin")]);
+    const packets = RtcpPacket.deSerialize(data);
+    expect(packets.length).toBe(2);
+    expect(packets[0].type).toBe(RtcpSrPacket.type);
+    expect(packets[1].type).toBe(RtcpRrPacket.type);
+  });
 });

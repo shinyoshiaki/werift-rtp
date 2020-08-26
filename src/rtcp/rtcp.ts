@@ -2,7 +2,9 @@ import { RtcpSrPacket } from "./sr";
 import { RtcpRrPacket } from "./rr";
 import { RtcpHeader, HEADER_SIZE } from "./header";
 
-export class RtcpPacket {
+export type RtcpPacket = RtcpRrPacket | RtcpSrPacket;
+
+export class RtcpPacketConverter {
   static serialize(type: number, count: number, payload: Buffer) {
     const header = new RtcpHeader({
       type,
@@ -16,7 +18,7 @@ export class RtcpPacket {
 
   static deSerialize(data: Buffer) {
     let pos = 0;
-    const packets = [];
+    const packets: RtcpPacket[] = [];
 
     while (pos < data.length) {
       const header = RtcpHeader.deSerialize(data.slice(pos, pos + HEADER_SIZE));
@@ -38,7 +40,7 @@ export class RtcpPacket {
           packets.push(RtcpRrPacket.deSerialize(payload, header.count));
           break;
         default:
-          throw new Error();
+          break;
       }
     }
 

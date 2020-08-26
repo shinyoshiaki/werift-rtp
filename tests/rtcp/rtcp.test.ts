@@ -1,12 +1,12 @@
 import { load } from "../utils";
-import { RtcpPacket } from "../../src/rtcp/rtcp";
+import { RtcpPacketConverter } from "../../src/rtcp/rtcp";
 import { RtcpSrPacket } from "../../src/rtcp/sr";
 import { RtcpRrPacket } from "../../src/rtcp/rr";
 
 describe("rtcp/rtcp", () => {
   test("test_sr", () => {
     const data = load("rtcp_sr.bin");
-    const packets = RtcpPacket.deSerialize(data) as RtcpSrPacket[];
+    const packets = RtcpPacketConverter.deSerialize(data) as RtcpSrPacket[];
     expect(packets.length).toBe(1);
 
     const packet = packets[0];
@@ -30,7 +30,7 @@ describe("rtcp/rtcp", () => {
 
   test("test_rr", () => {
     const data = load("rtcp_rr.bin");
-    const packets = RtcpPacket.deSerialize(data) as RtcpRrPacket[];
+    const packets = RtcpPacketConverter.deSerialize(data) as RtcpRrPacket[];
     expect(packets.length).toBe(1);
 
     const packet = packets[0];
@@ -49,7 +49,7 @@ describe("rtcp/rtcp", () => {
 
   test("test_compound", () => {
     const data = Buffer.concat([load("rtcp_sr.bin"), load("rtcp_rr.bin")]);
-    const packets = RtcpPacket.deSerialize(data);
+    const packets = RtcpPacketConverter.deSerialize(data);
     expect(packets.length).toBe(2);
     expect(packets[0].type).toBe(RtcpSrPacket.type);
     expect(packets[1].type).toBe(RtcpRrPacket.type);

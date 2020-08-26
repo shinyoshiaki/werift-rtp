@@ -1,9 +1,7 @@
-import { SrtpSession } from "../../src/srtp/srtp";
 import { createMockTransportPair } from "../utils";
-import { RtpHeader, RtpPacket } from "../../src/rtp/rtp";
 import { Config } from "../../src/srtp/session";
 import { Transport } from "../../src/transport";
-import { RtcpPacket } from "../../src/rtcp/rtcp";
+import { RtcpPacketConverter } from "../../src/rtcp/rtcp";
 import { RtcpRrPacket, RtcpReceiverInfo } from "../../src/rtcp/rr";
 import { SrtcpSession } from "../../src/srtp/srtcp";
 
@@ -104,7 +102,7 @@ describe("srtcp", () => {
 
     bPair.transport.onData = (buf) => {
       const dec = bPair.session.decrypt(buf);
-      const [rr] = RtcpPacket.deSerialize(dec);
+      const [rr] = RtcpPacketConverter.deSerialize(dec);
       expect(rr.type).toBe(RtcpRrPacket.type);
       expect(rr.ssrc).toBe(5000);
       expect(testPayload).toEqual(dec);

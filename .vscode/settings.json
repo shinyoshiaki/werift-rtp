@@ -5,7 +5,10 @@
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"cSpell.words": [
 		"decompressor",
+		"rtp",
 		"srtcp",
-		"struct"
+		"struct",
+		"werift",
+		"werift rtp"
 	]
 }

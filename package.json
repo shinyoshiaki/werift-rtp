@@ -1,11 +1,11 @@
 {
-  "name": "rainy-rtp",
+  "name": "werift-rtp",
   "version": "0.0.1",
-  "description": "DTLS protocol implementation for Node.js written in TypeScript.",
-  "homepage": "https://github.com/shinyoshiaki/rainy-dtls",
+  "description": "RTP,RTCP,SRTP,SRTCP implementation for TypeScript.",
+  "homepage": "https://github.com/shinyoshiaki/werift-rtp",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shinyoshiaki/rainy-dtls.git"
+    "url": "git+https://github.com/shinyoshiaki/werift-rtp.git"
   },
   "license": "MIT",
   "author": {
@@ -15,10 +15,10 @@
   "scripts": {
     "build": "tsc",
     "ci": "yarn type && yarn lint && yarn test",
+    "deploy": "./build.sh && yarn publish",
     "fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
     "lint": "eslint src/**/*.ts",
-    "publish": "npm publish --access=public",
     "test": "yarn type && jest --forceExit",
     "type": "tsc --noEmit -p .",
     "unused": "organize-imports-cli src/**/*.ts"

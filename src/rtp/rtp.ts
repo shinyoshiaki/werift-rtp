@@ -1,4 +1,4 @@
-import { setBit, getBit } from "../utils";
+import { getBit, setBit } from "../utils";
 
 type Extension = { id: number; payload: Buffer };
 

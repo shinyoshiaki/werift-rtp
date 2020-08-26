@@ -1,6 +1,6 @@
-import { RtcpSrPacket } from "./sr";
+import { HEADER_SIZE, RtcpHeader } from "./header";
 import { RtcpRrPacket } from "./rr";
-import { RtcpHeader, HEADER_SIZE } from "./header";
+import { RtcpSrPacket } from "./sr";
 
 export type RtcpPacket = RtcpRrPacket | RtcpSrPacket;
 

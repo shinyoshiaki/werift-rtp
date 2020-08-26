@@ -19,8 +19,7 @@ export class SrtpSession extends Session<SrtpContext> {
     return decrypted;
   };
 
-  encrypt(header: RtpHeader, payload: Buffer) {
-    const [enc] = this.localContext.encryptRTP(payload, header);
-    return enc;
+  encrypt(payload: Buffer, header: RtpHeader) {
+    return this.localContext.encryptRTP(payload, header);
   }
 }

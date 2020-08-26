@@ -104,8 +104,8 @@ describe("srtp", () => {
     };
 
     const enc = aPair.session.encrypt(
-      new RtpHeader({ ssrc: 5000 }),
-      testPayload
+      testPayload,
+      new RtpHeader({ ssrc: 5000 })
     );
     aPair.transport.send(enc);
   });

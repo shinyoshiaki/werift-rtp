@@ -38,7 +38,7 @@ export class RtpHeader {
   timestamp: number = 0;
   ssrc: number = 0;
   csrc: number[] = [];
-  extensionProfile: number = 0;
+  extensionProfile: number = extensionProfileOneByte;
   extensions: Extension[] = [];
   constructor(props: Partial<RtpHeader> = {}) {
     Object.assign(this, props);
@@ -63,7 +63,7 @@ export class RtpHeader {
     h.marker = getBit(m_pt, 0) > 0;
     h.payloadType = getBit(m_pt, 1, 7);
 
-    h.sequenceNumber = rawPacket.readInt16BE(seqNumOffset);
+    h.sequenceNumber = rawPacket.readUInt16BE(seqNumOffset);
     h.timestamp = rawPacket.readUInt32BE(timestampOffset);
     h.ssrc = rawPacket.readUInt32BE(ssrcOffset);
 
@@ -182,6 +182,7 @@ export class RtpHeader {
     const v_p_x_cc = { ref: 0 };
     setBit(v_p_x_cc, this.version, 1);
     if (this.padding) setBit(v_p_x_cc, 1, 2);
+    if (this.extensions.length > 0) this.extension = true;
     if (this.extension) setBit(v_p_x_cc, 1, 3);
     setBit(v_p_x_cc, this.csrc.length, 4, 4);
     buf.writeUInt8(v_p_x_cc.ref, offset++);
@@ -220,7 +221,7 @@ export class RtpHeader {
             offset += extension.payload.length;
           });
           break;
-        case extensionProfileTwoByte:
+        case extensionProfileTwoByte: // 1バイトで収まらなくなった歴史的経緯
           this.extensions.forEach((extension) => {
             buf.writeUInt8(extension.id, offset++);
             buf.writeUInt8(extension.payload.length, offset++);
@@ -240,7 +241,7 @@ export class RtpHeader {
       const extSize = offset - startExtensionsPos;
       const roundedExtSize = Math.floor((extSize + 3) / 4) * 4;
 
-      buf.writeInt16BE(Math.floor(roundedExtSize / 4), extHeaderPos + 2);
+      buf.writeUInt16BE(Math.floor(roundedExtSize / 4), extHeaderPos + 2);
       for (let i = 0; i < roundedExtSize - extSize; i++) {
         buf.writeUInt8(0, offset);
         offset++;

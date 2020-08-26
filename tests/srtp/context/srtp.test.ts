@@ -161,12 +161,12 @@ describe("srtp/context/srtp", () => {
       const decryptContext = buildTestContext();
 
       const decryptedPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
+        new RtpHeader({ sequenceNumber, version: 0 }),
         rtpTestCaseDecrypted
       );
       const decryptedRaw = decryptedPkt.serialize();
       const encryptedPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
+        new RtpHeader({ sequenceNumber, version: 0 }),
         encrypted
       );
       const encryptedRaw = encryptedPkt.serialize();
@@ -189,13 +189,13 @@ describe("srtp/context/srtp", () => {
       const decryptContext = buildTestContext();
 
       const decryptPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
+        new RtpHeader({ sequenceNumber, version: 0 }),
         rtpTestCaseDecrypted
       );
       const decryptedRaw = decryptPkt.serialize();
 
       const encryptedPkt = new RtpPacket(
-        new RtpHeader({ sequenceNumber }),
+        new RtpHeader({ sequenceNumber, version: 0 }),
         encrypted
       );
       const encryptedRaw = encryptedPkt.serialize();

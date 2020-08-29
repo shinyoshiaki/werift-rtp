@@ -102,7 +102,7 @@ describe("srtcp", () => {
 
     bPair.transport.onData = (buf) => {
       const dec = bPair.session.decrypt(buf);
-      const [rr] = RtcpPacketConverter.deSerialize(dec);
+      const [rr] = RtcpPacketConverter.deSerialize(dec) as [RtcpRrPacket];
       expect(rr.type).toBe(RtcpRrPacket.type);
       expect(rr.ssrc).toBe(5000);
       expect(testPayload).toEqual(dec);

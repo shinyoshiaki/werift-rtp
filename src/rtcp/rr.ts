@@ -21,7 +21,8 @@ export class RtcpRrPacket {
     return RtcpPacketConverter.serialize(
       RtcpRrPacket.type,
       this.reports.length,
-      payload
+      payload,
+      Math.floor(payload.length / 4)
     );
   }
 

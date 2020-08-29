@@ -1,10 +1,12 @@
 import { FullIntraRequest } from "./fullIntraRequest";
+import { PictureLossIndication } from "./pictureLossIndication";
+import { RtcpPacketConverter } from "../rtcp";
 
-type Feedback = FullIntraRequest;
+type Feedback = FullIntraRequest | PictureLossIndication;
 
 export class RtcpPayloadSpecificFeedback {
   static type = 206;
-  type = RtcpPayloadSpecificFeedback;
+  type = RtcpPayloadSpecificFeedback.type;
 
   feedback: Feedback;
 
@@ -13,7 +15,13 @@ export class RtcpPayloadSpecificFeedback {
   }
 
   serialize() {
-    return this.feedback.serialize();
+    const payload = this.feedback.serialize();
+    return RtcpPacketConverter.serialize(
+      this.type,
+      this.feedback.count,
+      payload,
+      this.feedback.length
+    );
   }
 
   static deSerialize(data: Buffer, count: number) {
@@ -22,6 +30,12 @@ export class RtcpPayloadSpecificFeedback {
     switch (count) {
       case FullIntraRequest.count:
         feedback = FullIntraRequest.deSerialize(data);
+        break;
+      case PictureLossIndication.count:
+        feedback = PictureLossIndication.deSerialize(data);
+        break;
+      default:
+        console.log(count);
         break;
     }
 

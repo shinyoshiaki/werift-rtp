@@ -4,6 +4,7 @@ type firEntry = { ssrc: number; sequenceNumber: number };
 
 export class FullIntraRequest {
   static count = 4;
+  count = FullIntraRequest.count;
 
   senderSsrc: number;
   mediaSsrc: number;
@@ -11,6 +12,10 @@ export class FullIntraRequest {
 
   constructor(props: Partial<FullIntraRequest> = {}) {
     Object.assign(this, props);
+  }
+
+  get length() {
+    return Math.floor(this.serialize().length / 4 - 1);
   }
 
   static deSerialize(data: Buffer) {

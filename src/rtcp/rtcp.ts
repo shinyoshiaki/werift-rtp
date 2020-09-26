@@ -36,12 +36,8 @@ export class RtcpPacketConverter {
       const header = RtcpHeader.deSerialize(data.slice(pos, pos + HEADER_SIZE));
       pos += HEADER_SIZE;
 
-      let payload = data.slice(pos);
+      const payload = data.slice(pos);
       pos += header.length * 4;
-
-      if (header.padding) {
-        payload = payload.slice(0, payload.length - payload.slice(-1)[0]);
-      }
 
       switch (header.type) {
         case RtcpSrPacket.type:

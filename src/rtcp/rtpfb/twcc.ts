@@ -26,7 +26,7 @@ export class TransportWideCC {
   packetStatusCount: number;
   referenceTime: number;
   fbPktCount: number;
-  packetChunks: any[] = [];
+  packetChunks: (RunLengthChunk | StatusVectorChunk)[] = [];
   recvDeltas: RecvDelta[] = [];
 
   constructor(props: Partial<TransportWideCC> = {}) {
@@ -42,13 +42,17 @@ export class TransportWideCC {
       referenceTime,
       fbPktCount,
     ] = bufferReader(data, [4, 4, 2, 2, 3, 1]);
-    const packetChunks = [];
+    const packetChunks: (RunLengthChunk | StatusVectorChunk)[] = [];
     const recvDeltas: RecvDelta[] = [];
 
     let packetStatusPos = 16;
     for (let processedPacketNum = 0; processedPacketNum < packetStatusCount; ) {
-      const type = getBit(packetStatusPos, 0, 1);
-      let iPacketStatus: any;
+      const type = getBit(
+        data.slice(packetStatusPos, packetStatusPos + 1)[0],
+        0,
+        1
+      );
+      let iPacketStatus: RunLengthChunk | StatusVectorChunk;
       switch (type) {
         case PacketChunk.TypeTCCRunLengthChunk:
           {
@@ -114,9 +118,15 @@ export class TransportWideCC {
       packetChunks.push(iPacketStatus);
     }
 
-    const recvDeltaPos = packetStatusPos;
+    let recvDeltaPos = packetStatusPos;
     recvDeltas.forEach((delta) => {
       if (delta.type === PacketStatus.TypeTCCPacketReceivedSmallDelta) {
+        delta.deSerialize(data.slice(recvDeltaPos, recvDeltaPos + 1));
+        recvDeltaPos++;
+      }
+      if (delta.type === PacketStatus.TypeTCCPacketReceivedLargeDelta) {
+        delta.deSerialize(data.slice(recvDeltaPos, recvDeltaPos + 2));
+        recvDeltaPos += 2;
       }
     });
 
@@ -243,6 +253,11 @@ export class RecvDelta {
     }
 
     return new RecvDelta({ type, delta });
+  }
+
+  deSerialize(data: Buffer) {
+    const res = RecvDelta.deSerialize(data);
+    this.delta = res.delta;
   }
 
   serialize() {

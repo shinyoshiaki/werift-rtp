@@ -9,7 +9,8 @@ export type RtcpPacket =
   | RtcpRrPacket
   | RtcpSrPacket
   | RtcpPayloadSpecificFeedback
-  | RtcpSourceDescriptionPacket;
+  | RtcpSourceDescriptionPacket
+  | RtcpFeedback;
 
 export class RtcpPacketConverter {
   static serialize(
@@ -36,8 +37,12 @@ export class RtcpPacketConverter {
       const header = RtcpHeader.deSerialize(data.slice(pos, pos + HEADER_SIZE));
       pos += HEADER_SIZE;
 
-      const payload = data.slice(pos);
+      let payload = data.slice(pos);
       pos += header.length * 4;
+
+      if (header.padding) {
+        payload = payload.slice(0, payload.length - payload.slice(-1)[0]);
+      }
 
       switch (header.type) {
         case RtcpSrPacket.type:
@@ -50,7 +55,7 @@ export class RtcpPacketConverter {
           packets.push(RtcpSourceDescriptionPacket.deSerialize(payload));
           break;
         case RtcpFeedback.type:
-          packets.push(RtcpFeedback.deSerialize(payload, header.count));
+          packets.push(RtcpFeedback.deSerialize(payload, header));
           break;
         case RtcpPayloadSpecificFeedback.type:
           packets.push(

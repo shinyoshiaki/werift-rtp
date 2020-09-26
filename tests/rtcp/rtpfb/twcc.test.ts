@@ -1,4 +1,4 @@
-import { RtcpPacketConverter } from "../../../src";
+import { RtcpHeader, RtcpPacketConverter } from "../../../src";
 import { RtcpFeedback } from "../../../src/rtcp/rtpfb";
 import {
   PacketChunk,
@@ -117,8 +117,8 @@ describe("rtcp/rtpfb/twcc", () => {
     }
   });
 
-  test("TransportWideCC", () => {
-    {
+  describe("TransportWideCC", () => {
+    test("example1", () => {
       const data = Buffer.from([
         0xaf,
         0xcd,
@@ -147,6 +147,14 @@ describe("rtcp/rtpfb/twcc", () => {
       ]);
       const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
       const twcc = rtpfb.feedback as TransportWideCC;
+      expect(twcc.header).toEqual(
+        new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 5,
+        })
+      );
       expect(twcc.senderSsrc).toBe(4195875351);
       expect(twcc.mediaSsrc).toBe(1124282272);
       expect(twcc.baseSequenceNumber).toBe(153);
@@ -166,8 +174,11 @@ describe("rtcp/rtpfb/twcc", () => {
           delta: 37000,
         }),
       ]);
-    }
-    {
+
+      const buf = rtpfb.serialize();
+      expect(buf).toEqual(data);
+    });
+    test("example2", () => {
       const data = Buffer.from([
         0xaf,
         0xcd,
@@ -196,10 +207,18 @@ describe("rtcp/rtpfb/twcc", () => {
         0xd0,
         0x0,
         0x0,
-        0x3,
+        0x1,
       ]);
       const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
       const twcc = rtpfb.feedback as TransportWideCC;
+      expect(twcc.header).toEqual(
+        new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 6,
+        })
+      );
       expect(twcc.senderSsrc).toBe(4195875351);
       expect(twcc.mediaSsrc).toBe(423483579);
       expect(twcc.baseSequenceNumber).toBe(372);
@@ -244,8 +263,11 @@ describe("rtcp/rtpfb/twcc", () => {
           delta: 0,
         }),
       ]);
-    }
-    {
+
+      const buf = rtpfb.serialize();
+      expect(buf).toEqual(data);
+    });
+    test("example3", () => {
       const data = Buffer.from([
         0xaf,
         0xcd,
@@ -282,6 +304,14 @@ describe("rtcp/rtpfb/twcc", () => {
       ]);
       const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
       const twcc = rtpfb.feedback as TransportWideCC;
+      expect(twcc.header).toEqual(
+        new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 7,
+        })
+      );
       expect(twcc.senderSsrc).toBe(4195875351);
       expect(twcc.mediaSsrc).toBe(423483579);
       expect(twcc.baseSequenceNumber).toBe(372);
@@ -326,8 +356,10 @@ describe("rtcp/rtpfb/twcc", () => {
           delta: 0,
         }),
       ]);
-    }
-    {
+      const buf = rtpfb.serialize();
+      expect(buf).toEqual(data);
+    });
+    test("example4", () => {
       const data = Buffer.from([
         0xaf,
         0xcd,
@@ -364,6 +396,14 @@ describe("rtcp/rtpfb/twcc", () => {
       ]);
       const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
       const twcc = rtpfb.feedback as TransportWideCC;
+      expect(twcc.header).toEqual(
+        new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 7,
+        })
+      );
       expect(twcc.senderSsrc).toBe(4195875351);
       expect(twcc.mediaSsrc).toBe(423483579);
       expect(twcc.baseSequenceNumber).toBe(4);
@@ -407,8 +447,10 @@ describe("rtcp/rtpfb/twcc", () => {
           delta: 4000,
         }),
       ]);
-    }
-    {
+      const buf = rtpfb.serialize();
+      expect(buf).toEqual(data);
+    });
+    test("example5", () => {
       const data = Buffer.from([
         0xaf,
         0xcd,
@@ -437,10 +479,18 @@ describe("rtcp/rtpfb/twcc", () => {
         0xc,
         0x10,
         0x0,
-        0x3,
+        0x2,
       ]);
       const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
       const twcc = rtpfb.feedback as TransportWideCC;
+      expect(twcc.header).toEqual(
+        new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 6,
+        })
+      );
       expect(twcc.senderSsrc).toBe(4195875351);
       expect(twcc.mediaSsrc).toBe(423483579);
       expect(twcc.baseSequenceNumber).toBe(1);
@@ -487,8 +537,10 @@ describe("rtcp/rtpfb/twcc", () => {
           delta: 4000,
         }),
       ]);
-    }
-    {
+      const buf = rtpfb.serialize();
+      expect(buf).toEqual(data);
+    });
+    test("example6", () => {
       const data = Buffer.from([
         0xaf,
         0xcd,
@@ -525,6 +577,14 @@ describe("rtcp/rtpfb/twcc", () => {
       ]);
       const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
       const twcc = rtpfb.feedback as TransportWideCC;
+      expect(twcc.header).toEqual(
+        new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 7,
+        })
+      );
       expect(twcc.senderSsrc).toBe(2608133663);
       expect(twcc.mediaSsrc).toBe(2473712828);
       expect(twcc.baseSequenceNumber).toBe(34108);
@@ -577,6 +637,155 @@ describe("rtcp/rtpfb/twcc", () => {
           delta: 66250,
         }),
       ]);
-    }
+      const buf = rtpfb.serialize();
+      expect(buf).toEqual(data);
+    });
+  });
+
+  describe("TransportWideCC serialize", () => {
+    test("example1", () => {
+      const twcc = new TransportWideCC({
+        header: new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 5,
+        }),
+        senderSsrc: 4195875351,
+        mediaSsrc: 1124282272,
+        baseSequenceNumber: 153,
+        packetStatusCount: 1,
+        referenceTime: 4057090,
+        fbPktCount: 23,
+        packetChunks: [
+          new RunLengthChunk({
+            type: PacketChunk.TypeTCCRunLengthChunk,
+            packetStatus: PacketStatus.TypeTCCPacketReceivedSmallDelta,
+            runLength: 1,
+          }),
+        ],
+        recvDeltas: [
+          new RecvDelta({
+            type: PacketStatus.TypeTCCPacketReceivedSmallDelta,
+            delta: 37000,
+          }),
+        ],
+      });
+      const buf = twcc.serialize();
+      const data = Buffer.from([
+        0xaf,
+        0xcd,
+        0x0,
+        0x5,
+        0xfa,
+        0x17,
+        0xfa,
+        0x17,
+        0x43,
+        0x3,
+        0x2f,
+        0xa0,
+        0x0,
+        0x99,
+        0x0,
+        0x1,
+        0x3d,
+        0xe8,
+        0x2,
+        0x17,
+        0x20,
+        0x1,
+        0x94,
+        0x1,
+      ]);
+      expect(buf).toEqual(data);
+    });
+
+    test("example2", () => {
+      const twcc = new TransportWideCC({
+        header: new RtcpHeader({
+          padding: true,
+          count: TransportWideCC.count,
+          type: RtcpFeedback.type,
+          length: 6,
+        }),
+        senderSsrc: 4195875351,
+        mediaSsrc: 423483579,
+        baseSequenceNumber: 372,
+        packetStatusCount: 2,
+        referenceTime: 4567386,
+        fbPktCount: 64,
+        packetChunks: [
+          new StatusVectorChunk({
+            type: PacketChunk.TypeTCCStatusVectorChunk,
+            symbolSize: 1,
+            symbolList: [
+              PacketStatus.TypeTCCPacketReceivedSmallDelta,
+              PacketStatus.TypeTCCPacketReceivedLargeDelta,
+              PacketStatus.TypeTCCPacketNotReceived,
+              PacketStatus.TypeTCCPacketNotReceived,
+              PacketStatus.TypeTCCPacketNotReceived,
+              PacketStatus.TypeTCCPacketNotReceived,
+              PacketStatus.TypeTCCPacketNotReceived,
+            ],
+          }),
+          new StatusVectorChunk({
+            type: PacketChunk.TypeTCCStatusVectorChunk,
+            symbolSize: 1,
+            symbolList: [
+              PacketStatus.TypeTCCPacketReceivedWithoutDelta,
+              PacketStatus.TypeTCCPacketNotReceived,
+              PacketStatus.TypeTCCPacketNotReceived,
+              PacketStatus.TypeTCCPacketReceivedWithoutDelta,
+              PacketStatus.TypeTCCPacketReceivedWithoutDelta,
+              PacketStatus.TypeTCCPacketReceivedWithoutDelta,
+              PacketStatus.TypeTCCPacketReceivedWithoutDelta,
+            ],
+          }),
+        ],
+        recvDeltas: [
+          new RecvDelta({
+            type: PacketStatus.TypeTCCPacketReceivedSmallDelta,
+            delta: 52000,
+          }),
+          new RecvDelta({
+            type: PacketStatus.TypeTCCPacketReceivedLargeDelta,
+            delta: 0,
+          }),
+        ],
+      });
+      const buf = twcc.serialize();
+      const data = Buffer.from([
+        0xaf,
+        0xcd,
+        0x0,
+        0x6,
+        0xfa,
+        0x17,
+        0xfa,
+        0x17,
+        0x19,
+        0x3d,
+        0xd8,
+        0xbb,
+        0x1,
+        0x74,
+        0x0,
+        0x2,
+        0x45,
+        0xb1,
+        0x5a,
+        0x40,
+        0xd8,
+        0x0,
+        0xf0,
+        0xff,
+        0xd0,
+        0x0,
+        0x0,
+        0x1,
+      ]);
+      expect(buf).toEqual(data);
+    });
   });
 });

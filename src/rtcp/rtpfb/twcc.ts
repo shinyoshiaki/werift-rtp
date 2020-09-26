@@ -1,6 +1,7 @@
 import { range } from "lodash";
 import { bufferReader, bufferWriter } from "../../helper";
 import { getBit, BitWriter } from "../../utils";
+import { RtcpHeader } from "../header";
 
 export enum PacketChunk {
   TypeTCCRunLengthChunk,
@@ -28,12 +29,13 @@ export class TransportWideCC {
   fbPktCount: number;
   packetChunks: (RunLengthChunk | StatusVectorChunk)[] = [];
   recvDeltas: RecvDelta[] = [];
+  header: RtcpHeader;
 
   constructor(props: Partial<TransportWideCC> = {}) {
     Object.assign(this, props);
   }
 
-  static deSerialize(data: Buffer) {
+  static deSerialize(data: Buffer, header: RtcpHeader) {
     const [
       senderSsrc,
       mediaSsrc,
@@ -139,11 +141,42 @@ export class TransportWideCC {
       fbPktCount,
       recvDeltas,
       packetChunks,
+      header,
     });
   }
 
   serialize() {
-    return bufferWriter([4, 4], [this.senderSsrc, this.mediaSsrc]);
+    const constBuf = bufferWriter(
+      [4, 4, 2, 2, 3, 1],
+      [
+        this.senderSsrc,
+        this.mediaSsrc,
+        this.baseSequenceNumber,
+        this.packetStatusCount,
+        this.referenceTime,
+        this.fbPktCount,
+      ]
+    );
+
+    const chunks = Buffer.concat(
+      this.packetChunks.map((chunk) => chunk.serialize())
+    );
+
+    const deltas = Buffer.concat(
+      this.recvDeltas.map((delta) => delta.serialize())
+    );
+
+    const buf = Buffer.concat([constBuf, chunks, deltas]);
+
+    if (this.header.padding && buf.length % 4 !== 0) {
+      const rest = 4 - (buf.length % 4);
+      const padding = Buffer.alloc(rest);
+      padding[padding.length - 1] = padding.length;
+
+      return Buffer.concat([this.header.serialize(), buf, padding]);
+    }
+
+    return Buffer.concat([this.header.serialize(), buf]);
   }
 }
 

@@ -1,6 +1,7 @@
 import {
   PacketChunk,
   PacketStatus,
+  RecvDelta,
   RunLengthChunk,
   StatusVectorChunk,
 } from "../../../src/rtcp/rtpfb/twcc";
@@ -82,6 +83,33 @@ describe("rtcp/rtpfb/twcc", () => {
         PacketStatus.TypeTCCPacketNotReceived,
         PacketStatus.TypeTCCPacketNotReceived,
       ]);
+      expect(res.serialize()).toEqual(data);
+    }
+  });
+
+  test("RecvDelta", () => {
+    {
+      const data = Buffer.from([0xff]);
+      const res = RecvDelta.deSerialize(data);
+      expect(res.type).toBe(PacketStatus.TypeTCCPacketReceivedSmallDelta);
+      expect(res.delta).toBe(63750);
+
+      expect(res.serialize()).toEqual(data);
+    }
+    {
+      const data = Buffer.from([0x7f, 0xff]);
+      const res = RecvDelta.deSerialize(data);
+      expect(res.type).toBe(PacketStatus.TypeTCCPacketReceivedLargeDelta);
+      expect(res.delta).toBe(8191750);
+
+      expect(res.serialize()).toEqual(data);
+    }
+    {
+      const data = Buffer.from([0x80, 0x00]);
+      const res = RecvDelta.deSerialize(data);
+      expect(res.type).toBe(PacketStatus.TypeTCCPacketReceivedLargeDelta);
+      expect(res.delta).toBe(-8192000);
+
       expect(res.serialize()).toEqual(data);
     }
   });

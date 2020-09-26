@@ -3,6 +3,8 @@ import { RtcpRrPacket } from "./rr";
 import { RtcpSrPacket } from "./sr";
 import { RtcpPayloadSpecificFeedback } from "./psfb";
 import { RtcpSourceDescriptionPacket } from "./sdes";
+import { RtcpFeedback } from "./rtpfb";
+
 export type RtcpPacket =
   | RtcpRrPacket
   | RtcpSrPacket
@@ -51,12 +53,16 @@ export class RtcpPacketConverter {
         case RtcpSourceDescriptionPacket.type:
           packets.push(RtcpSourceDescriptionPacket.deSerialize(payload));
           break;
+        case RtcpFeedback.type:
+          packets.push(RtcpFeedback.deSerialize(payload, header.count));
+          break;
         case RtcpPayloadSpecificFeedback.type:
           packets.push(
             RtcpPayloadSpecificFeedback.deSerialize(payload, header.count)
           );
           break;
         default:
+          console.log("unknown rtcp packet", header.type);
           break;
       }
     }

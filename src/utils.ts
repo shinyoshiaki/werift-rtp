@@ -2,9 +2,10 @@ export function setBit(
   bits: { ref: number },
   value: number,
   i: number,
-  length: number = 1
+  length: number = 1,
+  size = 8
 ) {
-  const shift = 8 - (i + length);
+  const shift = size - (i + length);
   bits.ref |= value << shift;
 }
 
@@ -14,4 +15,15 @@ export function getBit(bits: number, i: number, length: number = 1) {
   const s = bin.slice(i, i + length).join("");
   const v = parseInt(s, 2);
   return v;
+}
+
+export function setNBitsOfUint16(
+  src: { ref: number },
+  size: number,
+  startIndex: number,
+  val: number
+) {
+  val &= (1 << size) - 1;
+
+  src.ref = src.ref | (val << (16 - size - startIndex));
 }

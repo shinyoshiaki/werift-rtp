@@ -2,6 +2,7 @@ import {
   PacketChunk,
   PacketStatus,
   RunLengthChunk,
+  StatusVectorChunk,
 } from "../../../src/rtcp/rtpfb/twcc";
 
 describe("rtcp/rtpfb/twcc", () => {
@@ -39,6 +40,49 @@ describe("rtcp/rtpfb/twcc", () => {
       }).serialize();
       const expected = Buffer.from([0x60, 0x18]);
       expect(buf).toEqual(expected);
+    }
+  });
+
+  test("StatusVectorChunk", () => {
+    {
+      const data = Buffer.from([0x9f, 0x1c]);
+      const res = StatusVectorChunk.deSerialize(data);
+      expect(res.type).toBe(PacketChunk.TypeTCCStatusVectorChunk);
+      expect(res.symbolSize).toBe(0);
+      expect(res.symbolList).toEqual([
+        PacketStatus.TypeTCCPacketNotReceived,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketNotReceived,
+        PacketStatus.TypeTCCPacketNotReceived,
+        PacketStatus.TypeTCCPacketNotReceived,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketNotReceived,
+        PacketStatus.TypeTCCPacketNotReceived,
+      ]);
+
+      expect(res.serialize()).toEqual(data);
+    }
+    {
+      const data = Buffer.from([0xcd, 0x50]);
+      const res = StatusVectorChunk.deSerialize(data);
+      expect(res.type).toBe(PacketChunk.TypeTCCStatusVectorChunk);
+      expect(res.symbolSize).toBe(1);
+      expect(res.symbolList).toEqual([
+        PacketStatus.TypeTCCPacketNotReceived,
+        PacketStatus.TypeTCCPacketReceivedWithoutDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketReceivedSmallDelta,
+        PacketStatus.TypeTCCPacketNotReceived,
+        PacketStatus.TypeTCCPacketNotReceived,
+      ]);
+      expect(res.serialize()).toEqual(data);
     }
   });
 });

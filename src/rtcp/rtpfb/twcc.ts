@@ -1,3 +1,4 @@
+import { range } from "lodash";
 import { bufferReader, bufferWriter } from "../../helper";
 import { getBit, BitWriter } from "../../utils";
 
@@ -14,7 +15,7 @@ export enum PacketStatus {
   TypeTCCPacketReceivedWithoutDelta,
 }
 
-type RecvDelta = { type: number; delta: number };
+type RecvDelta = { type: number; delta?: number };
 
 export class TransportWideCC {
   static count = 15;
@@ -44,12 +45,33 @@ export class TransportWideCC {
       fbPktCount,
     ] = bufferReader(data, [4, 4, 2, 2, 3, 1]);
     const packetChunks = [];
+    const recvDeltas: RecvDelta[] = [];
+
     let packetStatusPos = 16;
     for (let processedPacketNum = 0; processedPacketNum < packetStatusCount; ) {
       const type = getBit(packetStatusPos, 0, 1);
       let iPacketStatus: any;
       switch (type) {
         case PacketChunk.TypeTCCRunLengthChunk:
+          const packetStatus = RunLengthChunk.deSerialize(
+            data.slice(packetStatusPos, packetStatusPos + 2)
+          );
+          iPacketStatus = packetStatus;
+          const packetNumberToProcess = Math.min(
+            packetStatusCount - processedPacketNum,
+            packetStatus.runLength
+          );
+          if (
+            packetStatus.packetStatus ===
+              PacketStatus.TypeTCCPacketReceivedSmallDelta ||
+            packetStatus.packetStatus ===
+              PacketStatus.TypeTCCPacketReceivedLargeDelta
+          ) {
+            range(packetNumberToProcess).forEach(() => {
+              recvDeltas.push({ type: packetStatus.packetStatus });
+            });
+          }
+          processedPacketNum += packetNumberToProcess;
           break;
       }
       packetStatusPos += 2;
@@ -63,6 +85,8 @@ export class TransportWideCC {
       packetStatusCount,
       referenceTime,
       fbPktCount,
+      recvDeltas,
+      packetChunks,
     });
   }
 
@@ -71,6 +95,10 @@ export class TransportWideCC {
   }
 }
 
+//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |T| S |       Run Length        |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 export class RunLengthChunk {
   type: number;
   packetStatus: number;
@@ -88,12 +116,65 @@ export class RunLengthChunk {
   }
 
   serialize() {
+    const buf = Buffer.alloc(2);
+
     const writer = new BitWriter(16);
     writer.set(1, 0, 0);
     writer.set(2, 1, this.packetStatus);
     writer.set(13, 3, this.runLength);
 
+    buf.writeUInt16BE(writer.value);
+    return buf;
+  }
+}
+
+//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |T|S|       symbol list         |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+export class StatusVectorChunk {
+  type: number;
+  symbolSize: number;
+  symbolList: number[];
+
+  constructor(props: Partial<StatusVectorChunk> = {}) {
+    Object.assign(this, props);
+  }
+
+  static deSerialize(data: Buffer) {
+    const type = PacketChunk.TypeTCCStatusVectorChunk;
+    let symbolSize = getBit(data[0], 1, 1);
+    const symbolList: number[] = [];
+
+    switch (symbolSize) {
+      case 0:
+        range(6).forEach((_, i) => symbolList.push(getBit(data[0], 2 + i, 1)));
+        range(8).forEach((_, i) => symbolList.push(getBit(data[1], i, 1)));
+        break;
+      case 1:
+        range(3).forEach((i) => symbolList.push(getBit(data[0], 2 + i * 2, 2)));
+        range(4).forEach((i) => symbolList.push(getBit(data[1], i * 2, 2)));
+        break;
+      default:
+        symbolSize = (getBit(data[0], 2, 6) << 8) + data[1];
+    }
+
+    return new StatusVectorChunk({ type, symbolSize, symbolList });
+  }
+
+  serialize() {
     const buf = Buffer.alloc(2);
+
+    const writer = new BitWriter(16);
+    writer.set(1, 0, 1);
+    writer.set(1, 1, this.symbolSize);
+
+    const bits = this.symbolSize === 0 ? 1 : 2;
+
+    this.symbolList.forEach((v, i) => {
+      const index = bits * i + 2;
+      writer.set(bits, index, v);
+    });
     buf.writeUInt16BE(writer.value);
     return buf;
   }

@@ -1,5 +1,5 @@
 import { bufferReader, bufferWriter } from "../../helper";
-import { getBit, setBit, setNBitsOfUint16 } from "../../utils";
+import { getBit, BitWriter } from "../../utils";
 
 export enum PacketChunk {
   TypeTCCRunLengthChunk,
@@ -88,12 +88,13 @@ export class RunLengthChunk {
   }
 
   serialize() {
-    const t_ps_rl = { ref: 0 };
-    setNBitsOfUint16(t_ps_rl, 0, 1, 0);
-    setNBitsOfUint16(t_ps_rl, 2, 1, this.packetStatus);
-    setNBitsOfUint16(t_ps_rl, 13, 3, this.runLength);
+    const writer = new BitWriter(16);
+    writer.set(1, 0, 0);
+    writer.set(2, 1, this.packetStatus);
+    writer.set(13, 3, this.runLength);
+
     const buf = Buffer.alloc(2);
-    buf.writeUInt16BE(t_ps_rl.ref);
+    buf.writeUInt16BE(writer.value);
     return buf;
   }
 }

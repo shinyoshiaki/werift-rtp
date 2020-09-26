@@ -4,6 +4,7 @@ describe("rtcp/header", () => {
   test("valid", () => {
     const raw = Buffer.from([0x81, 0xc9, 0x00, 0x07]);
     const h = new RtcpHeader({
+      version: 2,
       padding: false,
       count: 1,
       type: 201,

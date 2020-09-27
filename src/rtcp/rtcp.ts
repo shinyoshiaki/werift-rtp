@@ -3,14 +3,14 @@ import { RtcpRrPacket } from "./rr";
 import { RtcpSrPacket } from "./sr";
 import { RtcpPayloadSpecificFeedback } from "./psfb";
 import { RtcpSourceDescriptionPacket } from "./sdes";
-import { RtcpFeedback } from "./rtpfb";
+import { RtcpTransportLayerFeedback } from "./rtpfb";
 
 export type RtcpPacket =
   | RtcpRrPacket
   | RtcpSrPacket
   | RtcpPayloadSpecificFeedback
   | RtcpSourceDescriptionPacket
-  | RtcpFeedback;
+  | RtcpTransportLayerFeedback;
 
 export class RtcpPacketConverter {
   static serialize(
@@ -54,12 +54,12 @@ export class RtcpPacketConverter {
         case RtcpSourceDescriptionPacket.type:
           packets.push(RtcpSourceDescriptionPacket.deSerialize(payload));
           break;
-        case RtcpFeedback.type:
-          packets.push(RtcpFeedback.deSerialize(payload, header));
+        case RtcpTransportLayerFeedback.type:
+          packets.push(RtcpTransportLayerFeedback.deSerialize(payload, header));
           break;
         case RtcpPayloadSpecificFeedback.type:
           packets.push(
-            RtcpPayloadSpecificFeedback.deSerialize(payload, header.count)
+            RtcpPayloadSpecificFeedback.deSerialize(payload, header)
           );
           break;
         default:

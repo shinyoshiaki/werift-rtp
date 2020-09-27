@@ -1,5 +1,5 @@
 import { RtcpHeader, RtcpPacketConverter } from "../../../src";
-import { RtcpFeedback } from "../../../src/rtcp/rtpfb";
+import { RtcpTransportLayerFeedback } from "../../../src/rtcp/rtpfb";
 import {
   PacketChunk,
   PacketStatus,
@@ -145,13 +145,15 @@ describe("rtcp/rtpfb/twcc", () => {
         0x94,
         0x1,
       ]);
-      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
+      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [
+        RtcpTransportLayerFeedback
+      ];
       const twcc = rtpfb.feedback as TransportWideCC;
       expect(twcc.header).toEqual(
         new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 5,
         })
       );
@@ -209,13 +211,15 @@ describe("rtcp/rtpfb/twcc", () => {
         0x0,
         0x1,
       ]);
-      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
+      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [
+        RtcpTransportLayerFeedback
+      ];
       const twcc = rtpfb.feedback as TransportWideCC;
       expect(twcc.header).toEqual(
         new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 6,
         })
       );
@@ -302,13 +306,15 @@ describe("rtcp/rtpfb/twcc", () => {
         0xd0,
         0x0,
       ]);
-      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
+      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [
+        RtcpTransportLayerFeedback
+      ];
       const twcc = rtpfb.feedback as TransportWideCC;
       expect(twcc.header).toEqual(
         new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 7,
         })
       );
@@ -394,13 +400,15 @@ describe("rtcp/rtpfb/twcc", () => {
         0x0,
         0x3,
       ]);
-      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
+      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [
+        RtcpTransportLayerFeedback
+      ];
       const twcc = rtpfb.feedback as TransportWideCC;
       expect(twcc.header).toEqual(
         new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 7,
         })
       );
@@ -481,13 +489,15 @@ describe("rtcp/rtpfb/twcc", () => {
         0x0,
         0x2,
       ]);
-      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
+      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [
+        RtcpTransportLayerFeedback
+      ];
       const twcc = rtpfb.feedback as TransportWideCC;
       expect(twcc.header).toEqual(
         new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 6,
         })
       );
@@ -575,13 +585,15 @@ describe("rtcp/rtpfb/twcc", () => {
         0x9,
         0x1,
       ]);
-      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [RtcpFeedback];
+      const [rtpfb] = RtcpPacketConverter.deSerialize(data) as [
+        RtcpTransportLayerFeedback
+      ];
       const twcc = rtpfb.feedback as TransportWideCC;
       expect(twcc.header).toEqual(
         new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 7,
         })
       );
@@ -648,7 +660,7 @@ describe("rtcp/rtpfb/twcc", () => {
         header: new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 5,
         }),
         senderSsrc: 4195875351,
@@ -706,7 +718,7 @@ describe("rtcp/rtpfb/twcc", () => {
         header: new RtcpHeader({
           padding: true,
           count: TransportWideCC.count,
-          type: RtcpFeedback.type,
+          type: RtcpTransportLayerFeedback.type,
           length: 6,
         }),
         senderSsrc: 4195875351,

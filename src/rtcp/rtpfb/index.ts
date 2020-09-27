@@ -3,13 +3,13 @@ import { TransportWideCC } from "./twcc";
 
 type Feedback = TransportWideCC;
 
-export class RtcpFeedback {
+export class RtcpTransportLayerFeedback {
   static type = 205;
-  type = RtcpFeedback.type;
+  type = RtcpTransportLayerFeedback.type;
   feedback: Feedback;
   header: RtcpHeader;
 
-  constructor(props: Partial<RtcpFeedback> = {}) {
+  constructor(props: Partial<RtcpTransportLayerFeedback> = {}) {
     Object.assign(this, props);
   }
 
@@ -30,6 +30,6 @@ export class RtcpFeedback {
         break;
     }
 
-    return new RtcpFeedback({ feedback, header });
+    return new RtcpTransportLayerFeedback({ feedback, header });
   }
 }

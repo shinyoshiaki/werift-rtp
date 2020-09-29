@@ -33,6 +33,13 @@ export class TransportWideCC {
 
   constructor(props: Partial<TransportWideCC> = {}) {
     Object.assign(this, props);
+    if (!this.header) {
+      this.header = new RtcpHeader({
+        type: 205,
+        count: this.count,
+        version: 2,
+      });
+    }
   }
 
   static deSerialize(data: Buffer, header: RtcpHeader) {
@@ -163,7 +170,16 @@ export class TransportWideCC {
     );
 
     const deltas = Buffer.concat(
-      this.recvDeltas.map((delta) => delta.serialize())
+      this.recvDeltas
+        .map((delta) => {
+          try {
+            delta.serialize();
+          } catch (error) {
+            console.log(error.message);
+            return undefined;
+          }
+        })
+        .filter((v) => v)
     );
 
     const buf = Buffer.concat([constBuf, chunks, deltas]);
@@ -173,9 +189,11 @@ export class TransportWideCC {
       const padding = Buffer.alloc(rest);
       padding[padding.length - 1] = padding.length;
 
+      this.header.length = buf.length + padding.length;
       return Buffer.concat([this.header.serialize(), buf, padding]);
     }
 
+    this.header.length = buf.length;
     return Buffer.concat([this.header.serialize(), buf]);
   }
 }
@@ -294,7 +312,7 @@ export class RecvDelta {
   }
 
   serialize() {
-    const delta = this.delta / 250;
+    const delta = Math.floor(this.delta / 250);
     if (
       this.type === PacketStatus.TypeTCCPacketReceivedSmallDelta &&
       delta >= 0 &&
@@ -315,6 +333,6 @@ export class RecvDelta {
       return buf;
     }
 
-    throw new Error();
+    throw new Error("errDeltaExceedLimit " + delta + " " + this.type);
   }
 }

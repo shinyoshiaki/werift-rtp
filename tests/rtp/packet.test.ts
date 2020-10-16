@@ -33,12 +33,15 @@ describe("packet", () => {
 
     const parsed = RtpPacket.deSerialize(raw);
     expect(parsed.header.version).toBe(2);
-    expect(parsed.header.marker).toBe(true);
+    expect(parsed.header.padding).toBe(false);
     expect(parsed.header.extension).toBe(true);
+    expect(parsed.header.csrc.length).toBe(0);
+    expect(parsed.header.marker).toBe(true);
     expect(parsed.header.sequenceNumber).toBe(27023);
     expect(parsed.header.timestamp).toBe(3653407706);
     expect(parsed.header.ssrc).toBe(476325762);
     expect(parsed.header.extensionProfile).toBe(1);
+    expect(parsed.header.extensionLength).toBe(4);
     expect(parsed.header.extensions).toEqual([
       { id: 0, payload: Buffer.from([0xff, 0xff, 0xff, 0xff]) },
     ]);

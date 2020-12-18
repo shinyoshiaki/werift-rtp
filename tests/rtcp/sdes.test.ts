@@ -12,7 +12,7 @@ describe("rtcp/sdes", () => {
       0x81,
       0xca,
       0x00,
-      0x10,
+      0x03,
       // ssrc=0x10000000
       0x10,
       0x00,
@@ -56,7 +56,7 @@ describe("rtcp/sdes", () => {
       0x82,
       0xca,
       0x00,
-      0x18,
+      0x05,
       // ssrc=0x01020304
       0x01,
       0x02,
@@ -103,6 +103,7 @@ describe("rtcp/sdes", () => {
         ],
       })
     );
-    // expect(sdes.serialize()).toEqual(data);
+    const to = sdes.serialize();
+    expect(to).toEqual(data);
   });
 });
